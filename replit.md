@@ -1,45 +1,39 @@
-# [Project name]
+# Risk Report
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Synthesize a Risk Register into a Risk Report using a format constrained prompt and an OpenAI LLM
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
-
+- enter valid cvs risk register file in inputs folder
+- 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- API: gpt-4o-mini LLM
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+inputs - risk register, cleaned risk register
+outputs - risk narrative report, risk report json
+logs - app log
+src - python script
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Three Phase Pipeline - Data Preprocessing, AI Analysis, Report Generation
+- Functions in each phase invoked during Main execution flow
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Current: command line input cvs and output report text
+- Demonstration: Wrap in Streamlit interface
+- Future: Use as basis with RAG and project documents to ID unregistered risks
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- a GUI for demonstrations
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- the input file keys map to the preprocessing stage and LLM response JSON schema
 
-## Pointers
 
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details

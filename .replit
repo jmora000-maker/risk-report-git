@@ -1,20 +1,23 @@
-modules = ["nodejs-24"]
+odules = ["python-3.11"]
 
-[deployment]
-router = "application"
-deploymentTarget = "autoscale"
+# Force Streamlit to run on the standard web port 3000
+run = "streamlit run scripts/src/app.py --server.port 3000 --server.address 0.0.0.0"
+modules = ["python-3.11", "nodejs-20"]
 
-[deployment.postBuild]
-args = ["pnpm", "store", "prune"]
-env = { "CI" = "true" }
-
-[workflows]
-runButton = "Project"
+[nix]
+packages = ["csound", "twelf"]
+channel = "stable-25_05"
 
 [agent]
-stack = "PNPM_WORKSPACE"
 expertMode = true
 
-[postMerge]
-path = "scripts/post-merge.sh"
-timeoutMs = 20000
+# This block is CRITICAL for the Replit web view to find your app
+[web]
+port = 3000
+
+[[ports]]
+localPort = 3000
+externalPort = 80
+
+[deployment]
+deploymentTarget = "cloudrun"

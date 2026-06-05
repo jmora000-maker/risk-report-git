@@ -1,0 +1,502 @@
+import csv
+import json
+import os
+import requests
+import logging
+import sys
+from pathlib import Path
+
+# --- PATHS ---
+current_script_dir=Path(__file__).resolve().parent
+project_root=current_script_dir.parent
+input_folder = project_root / "inputs"
+log_folder = project_root / "logs"
+output_folder = project_root / "outputs"
+
+# --- GLOBAL CONSTANTS ---
+ALLOWED_CATEGORIES = {
+    "Schedule",
+    "Cost",
+    "Technical",
+    "Vendor",
+    "Compliance",
+    "Resource",
+    "Security",
+    "Scope",
+    "Stakeholder",
+    "Quality",
+    "External",
+    "Data",
+    "Operational",
+    "Procurement",
+}
+
+ALLOWED_STATUS = {"Open", "Watching", "Response in Progress", "Escalated", "Closed"}
+
+ALLOWED_RESPONSE_STRATEGIES = {"Avoid", "Mitigate", "Transfer", "Accept", "Escalate"}
+
+# --- DATA LOADING ---
+def load_from_csv(input_file):
+  with open (input_file, newline="", encoding="utf-8") as fobj:
+    reader = csv.DictReader(fobj)
+    dict_data = []
+    for row in reader:
+      dict_data.append(row)
+    return dict_data 
+
+# --- DATA NORMALIZATION ---
+def normalize_risk_data(dict_data):
+
+  #clean up text fields
+  for row in dict_data:
+    if "risk_id" in row:
+      row["risk_id"] = row["risk_id"].strip()
+    if "title" in row:
+      row["title"] = row["title"].strip()
+
+    #validate category enumeration
+    if "category" in row:
+      category = row["category"].strip()
+      if category not in ALLOWED_CATEGORIES:
+        logging.warning(f"Invalid category: {category}")
+
+    #validate status enumeration
+    if "status" in row:
+      status = row["status"].strip()
+      if status not in ALLOWED_STATUS:
+        logging.warning(f"Invalid status: {status}")
+
+    #validate response strategy enumeration
+    if "response_strategy" in row:
+      response_strategy = row["response_strategy"].strip()
+      if response_strategy not in ALLOWED_RESPONSE_STRATEGIES:
+        logging.warning(f"Invalid response strategy: {response_strategy}")
+
+    #convert numeric fields to integers
+    row["risk_score"] = int(row.get("risk_score", 0))
+    row["probability"] = int(row.get("probability", 0))
+    row["impact"] = int(row.get("impact", 0))
+    row["residual_probability"] = int(row.get("residual_probability", 0))
+    row["residual_impact"] = int(row.get("residual_impact", 0))
+
+    #calculate inherent score
+    row["inherent_score"] = row["probability"] * row["impact"]
+    row["residual_score"] = row["residual_probability"] * row["residual_impact"]
+
+# Sort by residual first, then by inherent (this gives priority to residual score)
+  dict_data.sort(key=lambda x: x["residual_score"], reverse=True)
+  dict_data.sort(key=lambda x: x["inherent_score"], reverse=True)
+  return dict_data
+
+# --- DATA SAVING ---
+def save_to_csv_file(output_file, dict_data):
+    with open(output_file, "w", newline="", encoding="utf-8") as fobj:
+      writer = csv.DictWriter(fobj, fieldnames=dict_data[0].keys())
+      writer.writeheader()
+      writer.writerows(dict_data)
+      return None
+
+# --- JSON CONVERSION ---
+def get_json_data(dict_data):
+  json_data = json.dumps(dict_data)
+  return json_data # payload is a JSON string
+
+# --- LLM INTEGRATION ---
+def fetch_llm_report(json_data, api_key):
+  url = "https://api.openai.com/v1/chat/completions"
+  headers = {
+    "Authorization": f"Bearer {api_key}",
+    "Content-Type": "application/json",
+  }
+  prompt = f"""
+  You are a project risk analyst. Read the provided risk register data and produce a synthesized risk report.
+
+  Your task is to analyze the risks, identify the most important patterns, summarize overall exposure, and generate a risk report in STRICT JSON only.
+
+  Rules:
+  1. Output must be valid JSON.
+  2. Do not include markdown fences.
+  3. Do not include any text before or after the JSON.
+  4. Use exactly the schema and field names provided below.
+  5. If a value is unknown, use an empty string for text fields, 0 for numeric fields, and [] for arrays.
+  6. Do not invent risks that are not present in the input.
+  7. Base all conclusions only on the provided input data.
+  8. Keep summaries concise, specific, and professional.
+  9. For "top_risks", include up to 10 highest-priority open or active risks, sorted by highest inherent or residual exposure available.
+  10. For "detailed_risk_analysis", include up to 10 highest-priority risks unless fewer are provided.
+  11. Treat "high_risks" as risks with risk_score >= 15 unless an explicit priority field is provided.
+  12. If residual_score is unavailable, set it to 0.
+  13. If trend cannot be determined from the data, state that trend cannot be determined from the provided snapshot.
+  14.For "top_risks", the summary should connect the risk to a concrete project consequence such as milestone slippage, budget overrun, failed control audit, deployment delay, regulatory exposure, or service disruption.
+
+  Report structure:
+  The executive summary should describe the total risk picture, concentration by category, and whether risk exposure is rising, stable, or improving.
+  The category summary should aggregate risk themes such as schedule, cost, technical, vendor, compliance, or resource.
+  The top risks section should rank by inherent or residual score and explain why each matters in plain business language.
+  The detailed analysis should not repeat the raw register verbatim; it should interpret the risk, response adequacy, and next action.
+  The conclusions should separate three things: immediate actions, management escalations, and lower-priority watch items.
+
+Required JSON schema:
+{{
+  "report_metadata": {{
+    "project_name": "string",
+    "report_date": "string",
+    "input_file": "string",
+    "total_risks": 0,
+    "open_risks": 0,
+    "high_risks": 0
+    "active_risks": 0
+  }},
+  "executive_summary": {{
+    "overall_summary": "string",
+    "key_drivers": ["string"],
+    "trend_statement": "string",
+    "management_attention": ["string"]
+  }},
+  "portfolio_summary": {{
+    "risks_by_category": [
+      {{
+        "category": "string",
+        "count": 0,
+        "average_score": 0,
+        "max_score":0,
+        "highest_score": 0
+        }}
+    ],
+    "risks_by_status": [
+      {{
+        "status": "string",
+        "count": 0
+        }}
+    ],
+  "top_risks": [
+      {{
+        "risk_id": "string",
+        "title": "string",
+        "category": "string",
+        "owner": "string",
+        "status": "string",
+        "inherent_score": 0,
+        "residual_score": 0,
+        "summary": "string"
+      }}
+    ]
+  }},
+  "detailed_risk_analysis": [
+    {{
+      "risk_id": "string",
+      "title": "string",
+      "category": "string",
+      "owner": "string",
+      "status": "string",
+      "inherent_score": 0,
+      "residual_score": 0,
+      "why_it_matters": "string",
+      "summary": "string",
+      "trigger": "string",
+      "current_response": "string",
+      "contingency_plan": "string",
+      "next_action": "string"
+      "adequacy": "string"
+    }}
+  ],
+  "conclusions": {{
+    "priority_actions": ["string"],
+    "escalations": ["string"],
+    "watch_items": ["string"]
+    "summary": "string"
+  }}
+  }}
+
+  Field interpretation:
+  - project_name: Use the provided project name if present; otherwise use "General Report".
+  - report_date: Use the provided report date if present; otherwise use the current date.
+  - input_file: Use the provided input filename if present; otherwise use "".
+  - total_risks: Total number of risk records in the input.
+  - open_risks: Count of risks whose status suggests active monitoring or unresolved exposure, such as Open, Watching, Response in Progress, or Escalated.
+  - high_risks: Count of risks with risk_score >= 15, unless an explicit priority field overrides this.
+  - overall_summary: A brief assessment of the total project risk picture.
+  - key_drivers: Main themes driving risk exposure, such as vendor dependency, schedule compression, resource gaps, compliance uncertainty, or technical complexity.
+  - trend_statement: Describe trend only if the input supports it. Otherwise say trend cannot be determined from the provided snapshot.
+  - management_attention: Short statements of where leadership focus is needed.
+  - risks_by_category: Aggregate counts and scoring by category.
+  - risks_by_status: Aggregate counts by status with brief interpretation.
+  - top_risks: Highest-priority risks summarized in one to two sentences each.
+  - detailed_risk_analysis: Focus on the most important risks and provide actionable interpretation.
+  - priority_actions: Immediate actions recommended for the next reporting period.
+  - escalations: Items requiring leadership or sponsor attention.
+  - watch_items: Lower-immediacy items that should continue to be monitored.
+  - summary: A brief summary of the conclusions.
+
+  Scoring guidance:
+  - Use risk_score as the inherent_score when available.
+  - If risk_score is not available but probability and impact are available, compute inherent_score = probability * impact.
+  - Use residual_score if present.
+  - If residual_score is not present but residual_probability and residual_impact are present, compute residual_score = residual_probability * residual_impact.
+  - Otherwise set residual_score to 0.
+
+  Status guidance:
+  - Treat these as open/active unless the input clearly indicates otherwise: Open, Watching, Response in Progress, Escalated.
+  - Treat Closed as not open.
+  - If status values differ, infer the nearest equivalent conservatively.
+
+  RISK_REGISTER:{json_data}"""
+
+  payload = {
+    "model": "gpt-4o-mini",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a risk analyst. Return valid JSON only.",
+      },
+      {"role": "user", "content": prompt},
+    ],
+    "temperature": 0.3
+  }
+
+  response = requests.post(url, headers=headers, json=payload)
+  if response.status_code == 200:
+    raw_ai_output = response.json()["choices"][0]["message"]["content"]
+    clean_ai_output = raw_ai_output.replace("```json", "").replace("```", "").strip()
+    clean_ai_dict = json.loads(clean_ai_output)
+    return clean_ai_dict
+  else:
+    print(f"DEBUG: Status Code: {response.status_code}")
+    print(f"DEBUG: Response Body: {response.text}")
+    raise Exception(f"API Failed: {response.status_code}")
+
+# --- JSON SAVING ---
+def save_to_json_file(output_file, clean_ai_dict):
+  with open(output_file, "w", encoding="utf-8") as fobj:
+    json_string = json.dumps(clean_ai_dict, indent=4) 
+    fobj.write(json_string)
+  return None
+
+# --- NARRATIVE GENERATION ---
+def generate_narrative(clean_ai_dict):
+
+    report_metadata = clean_ai_dict.get("report_metadata", {})
+    executive_summary = clean_ai_dict.get("executive_summary", {})
+    portfolio_summary = clean_ai_dict.get("portfolio_summary", {})
+    top_risks = clean_ai_dict.get("top_risks", [])
+    detailed_risk_analysis = clean_ai_dict.get("detailed_risk_analysis", [])
+    conclusions = clean_ai_dict.get("conclusions", {})
+
+    lines = []
+
+      # Title
+    project_name = report_metadata.get("project_name", "Unknown Project")
+    generated_on = report_metadata.get("report_date", "Unknown Date")
+    total_risks = report_metadata.get("total_risks", "Unknown")
+    active_risks = report_metadata.get("active_risks", "Unknown")
+
+    lines.append(f"RISK REPORT")
+    lines.append(f"Project: {project_name}")
+    lines.append(f"Report Date: {generated_on}")
+    lines.append("")
+    lines.append(f"This report summarizes {total_risks} identified risks, of which {active_risks} are currently active.")
+    lines.append("")
+
+      # Executive Summary
+    lines.append("EXECUTIVE SUMMARY")
+    lines.append(executive_summary.get("overall_summary", "No executive summary provided."))
+    lines.append("")
+
+    trend_statement = executive_summary.get("trend_statement")
+    if trend_statement:
+        lines.append(f"Overall trend: {trend_statement}")
+        lines.append("")
+
+    key_drivers = executive_summary.get("key_drivers", [])
+    if key_drivers:
+        lines.append("The principal risk drivers across the portfolio are "
+                      + ", ".join(key_drivers[:-1])
+                      + (", and " + key_drivers[-1] if len(key_drivers) > 1 else key_drivers[0])
+                       + ".")
+        lines.append("")
+
+    management_attention = executive_summary.get("management_attention", [])
+    if management_attention:
+        lines.append("Management attention is most needed in the following areas:")
+        for item in management_attention:
+            lines.append(f"- {item}")
+        lines.append("")
+
+      # Portfolio Overview
+    lines.append("PORTFOLIO OVERVIEW")
+    risks_by_category = portfolio_summary.get("risks_by_category", [])
+  # This sorts the list of dictionaries by the 'count' key in descending order
+    sorted_categories = sorted(risks_by_category, key=lambda x: x.get("count", 0), reverse=True)
+
+    if risks_by_category:
+        for cat in sorted_categories:
+            category = cat.get("category", "Unspecified")
+            count = cat.get("count", "Unknown")
+            avg_score = cat.get("average_score", "Unknown")
+            max_score = cat.get("highest_score", "Unknown")
+            commentary = cat.get("commentary", "")
+            lines.append(
+                  f"- {category} risks represent {count} items in the register, "
+                  f"with an average score of {avg_score} and a highest score of {max_score}. "
+                  f"{commentary}".strip()
+              )
+        lines.append("")
+    else:
+        lines.append("- No portfolio concentration data was provided.")
+        lines.append("")
+
+    # Top Risk Themes
+    lines.append("TOP RISK THEMES")
+    if sorted_categories:
+        top_categories = [c.get("category", "Unspecified") for c in sorted_categories[:3]]
+        if top_categories:
+            lines.append(
+                "- The main themes emerging from the portfolio are concentrated in "
+                  + ", ".join(top_categories[:-1])
+                  + (", and " + top_categories[-1] if len(top_categories) > 1 else top_categories[0])
+                  + "."
+              )
+            lines.append("")
+    else:
+        lines.append("No dominant portfolio themes could be identified from the available data.")
+        lines.append("")
+
+      # Top Risks
+    lines.append("TOP RISKS REQUIRING IMMEDIATE ATTENTION")
+    if detailed_risk_analysis:
+        for risk in detailed_risk_analysis:
+            risk_id = risk.get("risk_id", "Unknown ID")
+            title = risk.get("title", "Untitled Risk")
+            owner = risk.get("owner", "Unassigned")
+            status = risk.get("status", "Unknown")
+            inherent = risk.get("inherent_score", "Unknown")
+            residual = risk.get("residual_score", "Unknown")
+            why_it_matters = risk.get("why_it_matters", "No impact narrative provided.")
+            current_response = risk.get("current_response", "No current response documented.")
+            adequacy = risk.get("response_adequacy", "Response adequacy not assessed.")
+            next_action = risk.get("next_action", "No next action defined.")
+
+            lines.append(f"{risk_id} - {title}: This risk is currently {status} and owned by {owner}.")
+            lines.append(f"- Its inherent score is {inherent}, and its residual score is {residual}.")
+            lines.append(f"- {why_it_matters} Current response: {current_response}. ")
+            lines.append(f"- Assessment of response adequacy: {adequacy}.")
+            lines.append(f"- Next required action: {next_action}.")
+            lines.append("")
+    elif top_risks:
+        for risk in top_risks:
+            lines.append(
+                  f"{risk.get('risk_id', 'Unknown ID')} - {risk.get('title', 'Untitled Risk')}: "
+                  f"{risk.get('summary', 'No summary provided.')}"
+              )
+            lines.append("")
+    else:
+        lines.append("No top risks were provided.")
+        lines.append("")
+
+    # Immediate Actions
+    priority_actions = conclusions.get("priority_actions", [])
+    lines.append("IMMEDIATE ACTIONS")
+    if priority_actions:
+        for action in priority_actions:
+            lines.append(f"- {action}")
+    else:
+        lines.append("No immediate actions were identified.")
+    lines.append("")
+
+    # Escalations
+    escalations = conclusions.get("escalations", [])
+    lines.append("ESCALATIONS")
+    if escalations:
+        for esc in escalations:
+              lines.append(f"- {esc}")
+    else:
+        lines.append("No escalations were identified.")
+    lines.append("")
+
+    # Watch Items
+    watch_items = conclusions.get("watch_items", [])
+    lines.append("WATCH ITEMS")
+    if watch_items:
+        for item in watch_items:
+            lines.append(f"- {item}")
+    else:
+        lines.append("No watch items were identified.")
+    lines.append("")
+
+    # Conclusion
+    lines.append("CONCLUSION")
+    final_conclusion = conclusions.get("summary", "No conclusion provided.")
+    lines.append(f"{final_conclusion}")
+
+    return "\n".join(lines).strip()
+
+# --- NARRATIVE SAVING ---
+def save_narrative_to_file(output_file, narrative):
+  with open(output_file, "w", encoding="utf-8") as fobj:
+    fobj.write(narrative)
+  return None
+
+# --- MAIN EXECUTION ---
+def main():
+
+  target_dir = input_folder 
+  while True:
+    input_file = input("Enter the source filename (e.g., 'test_risk.txt'): ")
+    # Construct the full path
+    full_path = os.path.join(target_dir, input_file)
+
+    if os.path.isfile(full_path):
+      print(f"'{input_file}' found in {target_dir}.")
+      # You can now process the file using 'full_path'
+      break  
+    else:
+    # It is cleaner to ask again rather than exiting immediately
+      print(f"Error: '{input_file}' does not exist in {target_dir}. Please try again.")
+
+  print(f"Pipeline started.")
+  
+  json_output_file = output_folder/"risk_report.json"
+  narrative_report = output_folder/"risk_narrative_report.txt"
+
+  #Define the cleaned csv output file
+  name, ext = os.path.splitext(input_file)
+  cleaned_file = input_folder/f"{name}_cleaned{ext}"
+
+  api_key =       os.environ.get("Risk_Report_Key")
+  
+  data_from_csv = load_from_csv(full_path)
+  logging.info(f"{len(data_from_csv)} risks loaded from '{input_file}'.")
+  print(f"{len(data_from_csv)} risks loaded from '{input_file}'.")
+
+  clean_data = normalize_risk_data(data_from_csv)
+  print
+  logging.info(f"Data normalized.")
+  print(f"Data normalized.")
+
+  save_to_csv_file(cleaned_file, clean_data)
+  logging.info(f"Normalized data saved.")
+  print(f"Normalized data saved to '{cleaned_file}'.")
+
+  json_payload = get_json_data(clean_data)
+  logging.info(f"Data converted to JSON for LLM payload.")
+  print(f"Data converted to JSON for LLM payload.")
+
+  print("Sending payload to LLM for synthesis. This may take a moment...")
+  llm_data=fetch_llm_report(json_payload, api_key)
+  logging.info(f"LLM analysis successfully parsed.")
+
+  save_to_json_file(json_output_file, llm_data)
+  logging.info(f"JSON LLM data saved.")
+  print(f"LLM JSON data saved to '{json_output_file}'.")
+
+  narrative = generate_narrative(llm_data)
+  save_narrative_to_file(narrative_report, narrative)
+  logging.info(f"Narrative report saved.")
+  print(f"Narrative report saved to '{narrative_report}'.")
+  print(f"Pipeline completed.")
+
+# --- EXECUTE MAIN ---
+if __name__ == "__main__":
+  logging.basicConfig(level=logging.INFO, filename=log_folder/"app.log",
+     format="%(asctime)s - %(levelname)s - %(message)s")
+  main()

@@ -1,0 +1,269 @@
+{
+    "report_metadata": {
+        "project_name": "General Report",
+        "report_date": "2023-10-03",
+        "input_file": "",
+        "total_risks": 30,
+        "open_risks": 17,
+        "high_risks": 5,
+        "active_risks": 17
+    },
+    "executive_summary": {
+        "overall_summary": "The project faces significant risk exposure primarily in schedule and security categories, with a total of 30 identified risks.",
+        "key_drivers": [
+            "Vendor dependency",
+            "Schedule compression",
+            "Security vulnerabilities"
+        ],
+        "trend_statement": "Trend cannot be determined from the provided snapshot.",
+        "management_attention": [
+            "Address vendor API delays to prevent milestone slippage.",
+            "Mitigate security vulnerabilities to ensure compliance and protect data."
+        ]
+    },
+    "portfolio_summary": {
+        "risks_by_category": [
+            {
+                "category": "Schedule",
+                "count": 7,
+                "average_score": 14.29,
+                "max_score": 20,
+                "highest_score": 20
+            },
+            {
+                "category": "Security",
+                "count": 2,
+                "average_score": 20,
+                "max_score": 20,
+                "highest_score": 20
+            },
+            {
+                "category": "Cost",
+                "count": 5,
+                "average_score": 9.6,
+                "max_score": 12,
+                "highest_score": 12
+            },
+            {
+                "category": "Resource",
+                "count": 5,
+                "average_score": 8.4,
+                "max_score": 9,
+                "highest_score": 9
+            },
+            {
+                "category": "Technical",
+                "count": 5,
+                "average_score": 12,
+                "max_score": 12,
+                "highest_score": 12
+            },
+            {
+                "category": "Data",
+                "count": 3,
+                "average_score": 9,
+                "max_score": 9,
+                "highest_score": 9
+            },
+            {
+                "category": "Compliance",
+                "count": 2,
+                "average_score": 9,
+                "max_score": 10,
+                "highest_score": 10
+            },
+            {
+                "category": "Procurement",
+                "count": 3,
+                "average_score": 6,
+                "max_score": 6,
+                "highest_score": 6
+            },
+            {
+                "category": "Quality",
+                "count": 3,
+                "average_score": 10,
+                "max_score": 12,
+                "highest_score": 12
+            },
+            {
+                "category": "External",
+                "count": 3,
+                "average_score": 7.33,
+                "max_score": 8,
+                "highest_score": 8
+            }
+        ],
+        "risks_by_status": [
+            {
+                "status": "Open",
+                "count": 17
+            },
+            {
+                "status": "Watching",
+                "count": 7
+            },
+            {
+                "status": "Response in Progress",
+                "count": 4
+            },
+            {
+                "status": "Escalated",
+                "count": 4
+            },
+            {
+                "status": "Closed",
+                "count": 2
+            }
+        ]
+    },
+    "top_risks": [
+        {
+            "risk_id": "R-001",
+            "title": "Vendor API delay",
+            "category": "Schedule",
+            "owner": "A. Smith",
+            "status": "Open",
+            "inherent_score": 20,
+            "residual_score": 8,
+            "summary": "A delay in the vendor's API delivery could lead to significant schedule slippage, impacting project timelines."
+        },
+        {
+            "risk_id": "R-007",
+            "title": "Security vulnerability",
+            "category": "Security",
+            "owner": "G. Gray",
+            "status": "Open",
+            "inherent_score": 20,
+            "residual_score": 3,
+            "summary": "An outdated dependency poses a critical security risk, potentially leading to data breaches and compliance failures."
+        },
+        {
+            "risk_id": "R-019",
+            "title": "Migration timeline",
+            "category": "Schedule",
+            "owner": "S. Lime",
+            "status": "Escalated",
+            "inherent_score": 16,
+            "residual_score": 4,
+            "summary": "A tight migration timeline may result in schedule slippage, affecting project delivery."
+        },
+        {
+            "risk_id": "R-028",
+            "title": "Access management",
+            "category": "Security",
+            "owner": "B. Peach",
+            "status": "Escalated",
+            "inherent_score": 15,
+            "residual_score": 3,
+            "summary": "Unauthorized access risks could lead to severe security breaches and regulatory exposure."
+        },
+        {
+            "risk_id": "R-004",
+            "title": "Scope creep",
+            "category": "Scope",
+            "owner": "D. Brown",
+            "status": "Response in Progress",
+            "inherent_score": 12,
+            "residual_score": 4,
+            "summary": "Uncontrolled feature additions may lead to project delays and budget overruns."
+        }
+    ],
+    "detailed_risk_analysis": [
+        {
+            "risk_id": "R-001",
+            "title": "Vendor API delay",
+            "category": "Schedule",
+            "owner": "A. Smith",
+            "status": "Open",
+            "inherent_score": 20,
+            "residual_score": 8,
+            "why_it_matters": "Delays from the vendor can disrupt the entire project timeline, leading to missed deadlines.",
+            "summary": "The risk is significant due to vendor constraints and non-responsiveness, which could lead to milestone failures.",
+            "trigger": "Missed milestone",
+            "current_response": "Mitigate",
+            "contingency_plan": "Use stub interface",
+            "next_action": "Continue weekly checkpoints with the vendor.",
+            "adequacy": "Adequate, but requires close monitoring."
+        },
+        {
+            "risk_id": "R-007",
+            "title": "Security vulnerability",
+            "category": "Security",
+            "owner": "G. Gray",
+            "status": "Open",
+            "inherent_score": 20,
+            "residual_score": 3,
+            "why_it_matters": "This vulnerability could expose sensitive data, leading to compliance issues and reputational damage.",
+            "summary": "The risk is critical due to known CVEs and requires immediate patching to mitigate.",
+            "trigger": "Automated scan",
+            "current_response": "Mitigate",
+            "contingency_plan": "Rollback to v1",
+            "next_action": "Implement patches immediately.",
+            "adequacy": "Adequate, but needs urgent action."
+        },
+        {
+            "risk_id": "R-019",
+            "title": "Migration timeline",
+            "category": "Schedule",
+            "owner": "S. Lime",
+            "status": "Escalated",
+            "inherent_score": 16,
+            "residual_score": 4,
+            "why_it_matters": "A tight timeline can lead to rushed decisions, increasing the likelihood of errors.",
+            "summary": "The risk arises from poor planning and could result in significant schedule slippage.",
+            "trigger": "Schedule slippage",
+            "current_response": "Mitigate",
+            "contingency_plan": "Phased rollout",
+            "next_action": "Add resources to the migration team.",
+            "adequacy": "Needs improvement in resource allocation."
+        },
+        {
+            "risk_id": "R-028",
+            "title": "Access management",
+            "category": "Security",
+            "owner": "B. Peach",
+            "status": "Escalated",
+            "inherent_score": 15,
+            "residual_score": 3,
+            "why_it_matters": "Unauthorized access can lead to data breaches and regulatory penalties.",
+            "summary": "The risk stems from privilege creep and requires immediate attention to implement IAM.",
+            "trigger": "Audit fail",
+            "current_response": "Mitigate",
+            "contingency_plan": "Manual audit",
+            "next_action": "Implement IAM solutions.",
+            "adequacy": "Needs urgent action."
+        },
+        {
+            "risk_id": "R-004",
+            "title": "Scope creep",
+            "category": "Scope",
+            "owner": "D. Brown",
+            "status": "Response in Progress",
+            "inherent_score": 12,
+            "residual_score": 4,
+            "why_it_matters": "Scope creep can lead to budget overruns and project delays.",
+            "summary": "The risk is due to uncontrolled feature requests from stakeholders.",
+            "trigger": "Change request",
+            "current_response": "Mitigate",
+            "contingency_plan": "Deny features",
+            "next_action": "Enforce strict change request processes.",
+            "adequacy": "Adequate, but requires strict enforcement."
+        }
+    ],
+    "conclusions": {
+        "priority_actions": [
+            "Engage with the vendor to resolve API delays.",
+            "Implement immediate patches for security vulnerabilities."
+        ],
+        "escalations": [
+            "Escalate vendor API issues to senior management.",
+            "Seek additional resources for migration planning."
+        ],
+        "watch_items": [
+            "Monitor scope creep and resource gaps closely.",
+            "Continue to assess security vulnerabilities."
+        ],
+        "summary": "The project requires immediate attention to high-priority risks, particularly in schedule and security, to maintain project integrity."
+    }
+}
