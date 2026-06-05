@@ -1,0 +1,29 @@
+kind = "web"
+previewPath = "/"
+title = "Risk Report"
+version = "1.0.0"
+id = "artifacts/risk-report-app"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23110
+
+[services.development]
+run = "streamlit run /home/runner/workspace/scripts/src/app.py --server.port 23110 --server.address 0.0.0.0 --server.headless true"
+
+[services.production]
+build = [ "pip", "install", "-r", "/home/runner/workspace/requirements.txt" ]
+run = "streamlit run /home/runner/workspace/scripts/src/app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true"
+
+[services.health]
+path = "/"
+
+[services.env]
+PORT = "23110"
+BASE_PATH = "/"
