@@ -45,11 +45,11 @@ class StreamlitStdoutRedirector(contextlib.AbstractContextManager):
 
 # --- STREAMLIT UI CONFIGURATION ---
 st.set_page_config(
-    page_title="Next-Gen Delivery Risk Analytics",
+    page_title="Next-Gen Risk Analytics",
     layout="wide"
 )
 
-st.title("Next-Gen Delivery Risk Report Generator")
+st.title("Next-Gen Risk Report Generator")
 st.markdown("""
 This application automates the ingestion of project risks, processes them via an AI Synthesis engine, and produces downstream data matrices and a professional executive narrative.
 """)
