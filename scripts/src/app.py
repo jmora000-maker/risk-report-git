@@ -7,8 +7,6 @@ import logging
 from pathlib import Path
 import streamlit as st
 
-st.set_page_config(page_title="Next-Gen Risk Dashboard")
-
 # Import your existing pipeline functions 
 # (Assuming your script is named generate_risk_report.py)
 from generate_risk_report import (
