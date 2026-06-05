@@ -7,6 +7,8 @@ import logging
 from pathlib import Path
 import streamlit as st
 
+st.set_page_config(page_title="Next-Gen Risk Dashboard")
+
 # Import your existing pipeline functions 
 # (Assuming your script is named generate_risk_report.py)
 from generate_risk_report import (
@@ -53,7 +55,7 @@ This application automates the ingestion of project risks, processes them via an
 """)
 
 st.sidebar.header("Pipeline Configuration")
-target_filename = st.sidebar.text_input("Target Input File Name", value="test_risk.txt")
+target_filename = st.sidebar.text_input("Target Risk Register Name (test_risk.txt)", value="test_risk.txt")
 
 # Set up paths relative to your script
 full_input_path = input_folder / target_filename
@@ -144,7 +146,7 @@ with col1:
     console_logs.code("System idling... Click the button above to begin execution.")
 
 if start_pipeline:
-    with st.spinner("Processing delivery risk parameters..."):
+    with st.spinner("Processing risk parameters..."):
         final_narrative = run_automated_pipeline(console_logs)
         
     if final_narrative:

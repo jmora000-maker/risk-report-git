@@ -5,6 +5,7 @@ import requests
 import logging
 import sys
 from pathlib import Path
+from datetime import date
 
 # --- PATHS ---
 current_script_dir=Path(__file__).resolve().parent
@@ -30,6 +31,8 @@ ALLOWED_CATEGORIES = {
     "Operational",
     "Procurement",
 }
+
+today = date.today().strftime("%B %d, %Y")
 
 ALLOWED_STATUS = {"Open", "Watching", "Response in Progress", "Escalated", "Closed"}
 
@@ -108,8 +111,9 @@ def fetch_llm_report(json_data, api_key):
     "Authorization": f"Bearer {api_key}",
     "Content-Type": "application/json",
   }
+  
   prompt = f"""
-  You are a project risk analyst. Read the provided risk register data and produce a synthesized risk report.
+  You are a project risk analyst. Today's date is: {today}. Read the provided risk register data and produce a synthesized risk report.
 
   Your task is to analyze the risks, identify the most important patterns, summarize overall exposure, and generate a risk report in STRICT JSON only.
 
@@ -292,7 +296,7 @@ def generate_narrative(clean_ai_dict):
 
     lines.append(f"RISK REPORT")
     lines.append(f"Project: {project_name}")
-    lines.append(f"Report Date: {generated_on}")
+    lines.append(f"Report Date: {today}")
     lines.append("")
     lines.append(f"This report summarizes {total_risks} identified risks, of which {active_risks} are currently active.")
     lines.append("")
