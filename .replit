@@ -51,5 +51,5 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "streamlit run scripts/src/app.py --server.port 8000 --server.address 0.0.0.0"
+args = "streamlit run scripts/src/app.py --server.port 8000 --server.address 0.0.0.0 --server.enableCORS false --server.enableXsrfProtection false"
 waitForPort = 8000

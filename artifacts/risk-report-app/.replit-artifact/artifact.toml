@@ -15,11 +15,11 @@ paths = [ "/" ]
 localPort = 23110
 
 [services.development]
-run = "streamlit run /home/runner/workspace/scripts/src/app.py --server.port 23110 --server.address 0.0.0.0 --server.headless true"
+run = "streamlit run /home/runner/workspace/scripts/src/app.py --server.port 23110 --server.address 0.0.0.0 --server.headless true --server.enableCORS false --server.enableXsrfProtection false"
 
 [services.production]
 build = [ "pip", "install", "-r", "/home/runner/workspace/requirements.txt" ]
-run = "streamlit run /home/runner/workspace/scripts/src/app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true"
+run = "streamlit run /home/runner/workspace/scripts/src/app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true --server.enableCORS false --server.enableXsrfProtection false"
 
 [services.health]
 path = "/"
