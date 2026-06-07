@@ -7,17 +7,14 @@ import logging
 from pathlib import Path
 import streamlit as st
 
-st.set_page_config(page_title="Next-Gen Risk Dashboard")
-
-# Import your existing pipeline functions 
-# (Assuming your script is named generate_risk_report.py)
+# Import the updated engineering layers from generate_risk_report.py
 from generate_risk_report import (
     input_folder,
     output_folder,
     log_folder,
-    load_from_csv,
+    ingest_file,          # <-- Swapped old load_from_csv function for ingestion routing
     normalize_risk_data,
-    save_to_csv_file,
+    save_data,            # Handles dynamic type output exports (.csv vs .xlsx)
     get_json_data,
     fetch_llm_report,
     save_to_json_file,
@@ -27,7 +24,7 @@ from generate_risk_report import (
 
 # --- UTILITY TO CAPTURE STDOUT ---
 class StreamlitStdoutRedirector(contextlib.AbstractContextManager):
-    """Redirects standard output to a Streamlit text container in real-time."""
+    """Redirects standard output streams to a text component in the browser in real-time."""
     def __init__(self, placeholder):
         self.placeholder = placeholder
         self.string_io = io.StringIO()
@@ -40,8 +37,82 @@ class StreamlitStdoutRedirector(contextlib.AbstractContextManager):
         sys.stdout = sys.__stdout__
 
     def update_ui(self):
-        # Refresh the text area with whatever has been printed so far
+        # Refresh the text wrapper container with whatever has printed during execution
         self.placeholder.code(self.string_io.getvalue())
+
+
+# --- CORE PIPELINE EXECUTION WRAPPER ---
+def run_automated_pipeline(log_placeholder, input_file):
+    """Executes the complete risk management data pipeline using reactive UI variable parameters."""
+    input_file_path = os.path.join(input_folder, input_file)
+
+    # Pre-execution file evaluation safety gate
+    if not os.path.isfile(input_file_path):
+        st.error(f"Error: Target file '{input_file}' not found in the 'inputs' directory.")
+        return None
+
+    # Deconstruct extension traits dynamically based on user context textbox selection
+    file_path_obj = Path(input_file_path)
+    name = file_path_obj.stem
+    ext = file_path_obj.suffix.lower()
+
+    # Target export routing destinations
+    cleaned_file = input_folder / f"{name}_cleaned{ext}"
+    json_output_file = output_folder / "risk_report.json"
+    narrative_report = output_folder / "risk_narrative_report.txt"
+    api_key = os.environ.get("Risk_Report_Key")
+
+    # Capture print() statements and route them visually to our console readout component
+    with contextlib.redirect_stdout(io.StringIO()) as buffer:
+        try:
+            print("Pipeline started.")
+            log_placeholder.code(buffer.getvalue())
+
+            # Step 1: Unified dynamic spreadsheet ingestion (.csv, .xlsx, .xls, .txt)
+            data_from_file = ingest_file(input_file_path)
+            print(f"Loaded {len(data_from_file)} risks from register source file: '{input_file}'")
+            log_placeholder.code(buffer.getvalue())
+
+            # Step 2: Inherent and residual score logic preprocessing
+            clean_data = normalize_risk_data(data_from_file)
+            print("Spreadsheet normalization metrics computed.")
+            log_placeholder.code(buffer.getvalue())
+
+            # Step 3: Intermediate backup serialization matching input extensions
+            save_data(cleaned_file, clean_data, ext)
+            print(f"Normalized working snapshot stored to: '{cleaned_file.name}'")
+            log_placeholder.code(buffer.getvalue())
+
+            # Step 4: JSON processing conversions
+            json_payload = get_json_data(clean_data)
+            print("Data structures packaged into a JSON text payload layout.")
+            log_placeholder.code(buffer.getvalue())
+
+            # Step 5: Secure OpenAI chat completion request transaction
+            print("Transmitting contextual payload parameters to OpenAI for strategic synthesis...")
+            log_placeholder.code(buffer.getvalue())
+            llm_data = fetch_llm_report(json_payload, api_key)
+            print("Response successfully decrypted and parsed by application server.")
+            log_placeholder.code(buffer.getvalue())
+
+            # Step 6: Final structural artifact export procedures
+            save_to_json_file(json_output_file, llm_data)
+            print(f"System JSON schema metrics saved to: '{json_output_file.name}'")
+
+            narrative = generate_narrative(llm_data)
+            save_narrative_to_file(narrative_report, narrative)
+            print(f"Executive text summary report saved to: '{narrative_report.name}'")
+
+            print("Pipeline completed successfully.")
+            log_placeholder.code(buffer.getvalue())
+
+            return narrative
+
+        except Exception as e:
+            st.error(f"Pipeline crashed with an unhandled traceback exception: {e}")
+            logging.error(f"Streamlit runtime pipeline execution failure: {e}", exc_info=True)
+            return None
+
 
 # --- STREAMLIT UI CONFIGURATION ---
 st.set_page_config(
@@ -50,129 +121,59 @@ st.set_page_config(
 )
 
 st.title("Next-Gen Risk Report Generator")
-st.markdown("""
-This application automates the ingestion of project risks, processes them via an AI Synthesis engine, and produces downstream data matrices and a professional executive narrative.
-""")
+st.markdown("---")
 
-st.sidebar.header("Pipeline Configuration")
-target_filename = st.sidebar.text_input("Target Risk Register Name (test_risk.txt)", value="test_risk.txt")
-
-# Set up paths relative to your script
-full_input_path = input_folder / target_filename
-json_output_file = output_folder / "risk_report.json"
-narrative_report = output_folder / "risk_narrative_report.txt"
-
-st.sidebar.markdown(f"**Target Ingestion Path:**\n`{full_input_path}`")
-
-# --- MAIN AUTOMATED EXECUTION TRACER ---
-def run_automated_pipeline(stdout_holder):
-    with StreamlitStdoutRedirector(stdout_holder) as redirector:
-        # 1. Validation Check
-        if not full_input_path.is_file():
-            print(f"Error: '{target_filename}' does not exist in {input_folder}.")
-            redirector.update_ui()
-            st.error(f"Target file not found at: {full_input_path}")
-            return False
-
-        print(f"'{target_filename}' discovered automatically in inputs folder.")
-        print("Pipeline started.")
-        redirector.update_ui()
-
-        # Define cleaned CSV output file name
-        cleaned_file = input_folder / f"{full_input_path.stem}_cleaned{full_input_path.suffix}"
-
-        # Fetch API Key
-        api_key = os.environ.get("Risk_Report_Key")
-        if not api_key:
-            print("CRITICAL ERROR: 'Risk_Report_Key' environment variable is missing.")
-            redirector.update_ui()
-            st.error("Missing API Key! Please set the 'Risk_Report_Key' in Replit Secrets.")
-            return False
-
-        # 2. Extract & Normalize
-        data_from_csv = load_from_csv(full_input_path)
-        print(f"{len(data_from_csv)} risks loaded from '{target_filename}'.")
-        redirector.update_ui()
-
-        clean_data = normalize_risk_data(data_from_csv)
-        print("Data normalized.")
-        redirector.update_ui()
-
-        save_to_csv_file(cleaned_file, clean_data)
-        print(f"Normalized data saved to '{cleaned_file.name}'.")
-        redirector.update_ui()
-
-        # 3. Payload Conversion
-        json_payload = get_json_data(clean_data)
-        print("Data converted to JSON for LLM payload.")
-        print("Sending payload to LLM for synthesis. This may take a moment...")
-        redirector.update_ui()
-
-        # 4. LLM Query execution
-        try:
-            llm_data = fetch_llm_report(json_payload, api_key)
-            print("LLM analysis successfully parsed.")
-            redirector.update_ui()
-        except Exception as e:
-            print(f"Pipeline Interrupted: {str(e)}")
-            redirector.update_ui()
-            st.error(f"LLM API Call failed: {e}")
-            return False
-
-        # 5. Save Outputs
-        save_to_json_file(json_output_file, llm_data)
-        print(f"LLM JSON data saved to '{json_output_file.name}'.")
-        redirector.update_ui()
-
-        narrative = generate_narrative(llm_data)
-        save_narrative_to_file(narrative_report, narrative)
-        print(f"Narrative report saved to '{narrative_report.name}'.")
-        print("Pipeline completed successfully.")
-        redirector.update_ui()
-        
-        return narrative
-
-# --- UI ACTION TRIGGER ---
-col1, col2 = st.columns([1, 2])
+# Split dashboard workspace view evenly into two layout control blocks
+col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("Execution Controls")
-    # Single execution button as requested
-    start_pipeline = st.button("Process & Generate Risk Report", type="primary", use_container_width=True)
-    
-    st.markdown("### Real-time Console Log")
-    # This element acts as our real-time terminal readout window
-    console_logs = st.empty()
-    console_logs.code("System idling... Click the button above to begin execution.")
+    st.subheader("Control Center")
 
+    # Reactive user textbox component mapping straight to inputs directory files
+    target_filename = st.text_input(
+        label="Source Filename", 
+        value="test_risk.xlsx", 
+        help="Type the full name of the file located inside your 'inputs' folder (e.g., test_risk.xlsx, test_risk.csv. test_risk.txt)"
+    )
+
+    # Core system action trigger interface button
+    start_pipeline = st.button("Generate Executive Risk Summary", use_container_width=True)
+
+    st.subheader("Live Operational Logs")
+    # Interactive log tracing viewport block
+    console_logs = st.empty()
+    console_logs.code("System idling... Enter a valid input file and click the execution button to begin.")
+
+# Active process handler evaluations
 if start_pipeline:
     with st.spinner("Processing risk parameters..."):
-        final_narrative = run_automated_pipeline(console_logs)
-        
+        # Forward operational console and typed filename target downstream into execution stack
+        final_narrative = run_automated_pipeline(console_logs, target_filename)
+
     if final_narrative:
         with col2:
             st.subheader("Generated Executive Narrative")
-            
-            # Custom CSS styling wrapped in Markdown to provide a scrollable text container
+
+            # Custom styled HTML markdown layout window containing scrollable report payload results
             st.markdown(
                 f"""
                 <div style="
                     background-color: #1e293b; 
                     color: #f8fafc; 
-                    padding: 20px; 
-                    border-radius: 8px; 
-                    height: 550px; 
-                    overflow-y: scroll; 
-                    white-space: pre-wrap; 
-                    font-family: monospace;
-                    border: 1px solid #334155;
-                    line-height: 1.5;
+                    padding: 20px; \
+                    border-radius: 8px; \
+                    height: 550px; \
+                    overflow-y: scroll; \
+                    white-space: pre-wrap; \
+                    font-family: monospace;\
+                    border: 1px solid #334155;\
+                    line-height: 1.5;\
                 ">{final_narrative}</div>
                 """, 
-                unsafe_allow_html=True  # Ensure this says 'unsafe_allow_html', not 'unsafe_allow_code'
+                unsafe_allow_html=True
             )
-            
-            # Simple direct download button for convenience
+
+            # Native browser download button widget asset mapping final strings out of RAM memory
             st.download_button(
                 label="Download Narrative Report (.txt)",
                 data=final_narrative,

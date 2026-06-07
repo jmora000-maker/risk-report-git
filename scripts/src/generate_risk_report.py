@@ -6,6 +6,7 @@ import logging
 import sys
 from pathlib import Path
 from datetime import date
+import pandas as pd  
 
 # --- PATHS ---
 current_script_dir=Path(__file__).resolve().parent
@@ -39,35 +40,62 @@ ALLOWED_STATUS = {"Open", "Watching", "Response in Progress", "Escalated", "Clos
 ALLOWED_RESPONSE_STRATEGIES = {"Avoid", "Mitigate", "Transfer", "Accept", "Escalate"}
 
 # --- DATA LOADING ---
+
+#Routes the file to the correct loader based on extension.
+def ingest_file(input_file_path):
+  ext = Path(input_file_path).suffix.lower()
+  if ext == ".csv":
+      logging.info(f"Loading CSV file: {input_file_path}")
+      print(f"Loading CSV file: {input_file_path}")
+      return load_from_csv(input_file_path)
+  elif ext == ".txt":
+      logging.info(f"Loading TXT file: {input_file_path}")
+      print(f"Loading TXT file: {input_file_path}")
+      return load_from_csv(input_file_path)
+  elif ext in [".xlsx", ".xls"]:
+      return load_from_excel(input_file_path)
+  else:
+      raise ValueError(f"Unsupported file format: {ext}")
+
+""""Reads an Excel file and converts it to a list of dictionaries using pandas.
+Read the first sheet by default; handles NaN values cleanly by converting them to empty strings"""
+def load_from_excel(input_file):
+  df = pd.read_excel(input_file, dtype=str)
+  logging.info (f"Excel file loaded with {len(df)} rows.")
+  print (f"Excel file loaded with {len(df)} rows.")
+  df = df.fillna("")
+  return df.to_dict(orient="records")
+
+""""Reads a CSV file and converts it to a list of dictionaries using the csv module."""
 def load_from_csv(input_file):
-  with open (input_file, newline="", encoding="utf-8") as fobj:
-    reader = csv.DictReader(fobj)
-    dict_data = []
-    for row in reader:
-      dict_data.append(row)
-    return dict_data 
+  with open (input_file, newline="", encoding="utf-8") as fobj:    # Open the file
+    reader = csv.DictReader(fobj) # An iterable object that returns dictionaries
+    dict_data = []                # initialize an empty list
+    for row in reader:            # convert each row to a dictionary
+      dict_data.append(row)       # add the dictionary to the list
+  return dict_data
 
 # --- DATA NORMALIZATION ---
 def normalize_risk_data(dict_data):
 
   #clean up text fields
-  for row in dict_data:
-    if "risk_id" in row:
-      row["risk_id"] = row["risk_id"].strip()
-    if "title" in row:
-      row["title"] = row["title"].strip()
+  for row in dict_data:                                   # iterate over each row
+    if "risk_id" in row:                                  # check if the key exists  
+      row["risk_id"] = row["risk_id"].strip()             # strip whitespace
+    if "title" in row:                                    # check if the key exists  
+      row["title"] = row["title"].strip()                 # strip whitespace
 
     #validate category enumeration
-    if "category" in row:
-      category = row["category"].strip()
-      if category not in ALLOWED_CATEGORIES:
-        logging.warning(f"Invalid category: {category}")
+    if "category" in row:                                 # check if the key exists  
+      category = row["category"].strip()                  # strip whitespace        
+      if category not in ALLOWED_CATEGORIES:              # check if the value is allowed
+        logging.warning(f"Invalid category: {category}")  # log a warning if not allowed
 
     #validate status enumeration
-    if "status" in row:
-      status = row["status"].strip()
-      if status not in ALLOWED_STATUS:
-        logging.warning(f"Invalid status: {status}")
+    if "status" in row:                                   # check if the key exists
+      status = row["status"].strip()                      # strip whitespace
+      if status not in ALLOWED_STATUS:                    # check if the value is allowed
+        logging.warning(f"Invalid status: {status}")      # log a warning if not allowed
 
     #validate response strategy enumeration
     if "response_strategy" in row:
@@ -76,28 +104,34 @@ def normalize_risk_data(dict_data):
         logging.warning(f"Invalid response strategy: {response_strategy}")
 
     #convert numeric fields to integers
-    row["risk_score"] = int(row.get("risk_score", 0))
-    row["probability"] = int(row.get("probability", 0))
-    row["impact"] = int(row.get("impact", 0))
-    row["residual_probability"] = int(row.get("residual_probability", 0))
-    row["residual_impact"] = int(row.get("residual_impact", 0))
+    row["risk_score"] = int(row.get("risk_score", 0))    # convert to integer
+    row["probability"] = int(row.get("probability", 0))  # convert to integer
+    row["impact"] = int(row.get("impact", 0))            # convert to integer
+    row["residual_probability"] = int(row.get("residual_probability", 0)) # convert to integer
+    row["residual_impact"] = int(row.get("residual_impact", 0))           # convert to integer
 
     #calculate inherent score
-    row["inherent_score"] = row["probability"] * row["impact"]
-    row["residual_score"] = row["residual_probability"] * row["residual_impact"]
+    row["inherent_score"] = row["probability"] * row["impact"]            # calculate inherent score
+    row["residual_score"] = row["residual_probability"] * row["residual_impact"] # calculate residual score
 
 # Sort by residual first, then by inherent (this gives priority to residual score)
-  dict_data.sort(key=lambda x: x["residual_score"], reverse=True)
+  dict_data.sort(key=lambda x: x["residual_score"], reverse=True) 
   dict_data.sort(key=lambda x: x["inherent_score"], reverse=True)
   return dict_data
 
 # --- DATA SAVING ---
-def save_to_csv_file(output_file, dict_data):
-    with open(output_file, "w", newline="", encoding="utf-8") as fobj:
-      writer = csv.DictWriter(fobj, fieldnames=dict_data[0].keys())
-      writer.writeheader()
-      writer.writerows(dict_data)
-      return None
+
+"""Saves data to a file in the original format (CSV or Excel) using pandas."""
+def save_data(output_file, dict_data, original_ext):
+  if original_ext in [".csv", ".txt"]:
+      with open(output_file, "w", newline="", encoding="utf-8") as fobj:
+          writer = csv.DictWriter(fobj, fieldnames=dict_data[0].keys())
+          writer.writeheader()
+          writer.writerows(dict_data)
+  elif original_ext in [".xlsx", ".xls"]:
+      df = pd.DataFrame(dict_data)
+      df.to_excel(output_file, index=False)
+  return None
 
 # --- JSON CONVERSION ---
 def get_json_data(dict_data):
@@ -111,7 +145,7 @@ def fetch_llm_report(json_data, api_key):
     "Authorization": f"Bearer {api_key}",
     "Content-Type": "application/json",
   }
-  
+
   prompt = f"""
   You are a project risk analyst. Today's date is: {today}. Read the provided risk register data and produce a synthesized risk report.
 
@@ -260,26 +294,25 @@ Required JSON schema:
 
   response = requests.post(url, headers=headers, json=payload)
   if response.status_code == 200:
-    raw_ai_output = response.json()["choices"][0]["message"]["content"]
-    clean_ai_output = raw_ai_output.replace("```json", "").replace("```", "").strip()
-    clean_ai_dict = json.loads(clean_ai_output)
+    raw_ai_output = response.json()["choices"][0]["message"]["content"]               # extract the response text
+    clean_ai_output = raw_ai_output.replace("```json", "").replace("```", "").strip() # remove markdown fences
+    clean_ai_dict = json.loads(clean_ai_output)                                      # convert to dictionary
     return clean_ai_dict
   else:
-    print(f"DEBUG: Status Code: {response.status_code}")
-    print(f"DEBUG: Response Body: {response.text}")
+    print(f"DEBUG: API Failed: {response.status_code}")
     raise Exception(f"API Failed: {response.status_code}")
 
 # --- JSON SAVING ---
 def save_to_json_file(output_file, clean_ai_dict):
-  with open(output_file, "w", encoding="utf-8") as fobj:
-    json_string = json.dumps(clean_ai_dict, indent=4) 
-    fobj.write(json_string)
+  with open(output_file, "w", encoding="utf-8") as fobj:                           # open the file for writing
+    json_string = json.dumps(clean_ai_dict, indent=4)                             # convert the dictionary to a JSON string
+    fobj.write(json_string)                                                       # write the JSON string to the file
   return None
 
 # --- NARRATIVE GENERATION ---
 def generate_narrative(clean_ai_dict):
 
-    report_metadata = clean_ai_dict.get("report_metadata", {})
+    report_metadata = clean_ai_dict.get("report_metadata", {})              
     executive_summary = clean_ai_dict.get("executive_summary", {})
     portfolio_summary = clean_ai_dict.get("portfolio_summary", {})
     top_risks = clean_ai_dict.get("top_risks", [])
@@ -445,39 +478,43 @@ def main():
 
   target_dir = input_folder 
   while True:
-    input_file = input("Enter the source filename (e.g., 'test_risk.txt'): ")
-    # Construct the full path
-    full_path = os.path.join(target_dir, input_file)
+    # Accept file names dynamically
+    input_file = input("Enter the source filename (e.g., 'test_risk.xlsx' 'test_risk.csv' or 'test_risk.txt' ): ")
+    input_file_path = os.path.join(target_dir, input_file)
 
-    if os.path.isfile(full_path):
-      print(f"'{input_file}' found in {target_dir}.")
-      # You can now process the file using 'full_path'
-      break  
+    if os.path.isfile(input_file_path):
+          print(f"'{input_file}' found in {target_dir}.")
+          break  
     else:
-    # It is cleaner to ask again rather than exiting immediately
-      print(f"Error: '{input_file}' does not exist in {target_dir}. Please try again.")
+          print(f"Error: '{input_file}' does not exist in {target_dir}. Please try again.")
 
   print(f"Pipeline started.")
-  
-  json_output_file = output_folder/"risk_report.json"
-  narrative_report = output_folder/"risk_narrative_report.txt"
 
-  #Define the cleaned csv output file
-  name, ext = os.path.splitext(input_file)
-  cleaned_file = input_folder/f"{name}_cleaned{ext}"
+  # Track extension details for outputs
+  file_path_obj = Path(input_file_path)
+  name = file_path_obj.stem
+  ext = file_path_obj.suffix.lower()
 
-  api_key =       os.environ.get("Risk_Report_Key")
-  
-  data_from_csv = load_from_csv(full_path)
-  logging.info(f"{len(data_from_csv)} risks loaded from '{input_file}'.")
-  print(f"{len(data_from_csv)} risks loaded from '{input_file}'.")
+  cleaned_file = output_folder / f"{name}_cleaned{ext}"
+  api_key = os.environ.get("Risk_Report_Key")
 
-  clean_data = normalize_risk_data(data_from_csv)
+  # 2. Routed data loading
+  try:
+      data_from_file = ingest_file(input_file_path) # ingest_file returns a list of dictionaries whether from CSV or Excel
+  except Exception as e:
+      print(f"Critical Ingestion Error: {e}")
+      logging.error(f"Critical Ingestion Error: {e}")
+      sys.exit(1)
+
+  logging.info(f"{len(data_from_file)} risks loaded from '{input_file}'.")
+  print(f"{len(data_from_file)} risks loaded from '{input_file}'.")
+
+  clean_data = normalize_risk_data(data_from_file)
   print
   logging.info(f"Data normalized.")
   print(f"Data normalized.")
 
-  save_to_csv_file(cleaned_file, clean_data)
+  save_data(cleaned_file, clean_data, ext)
   logging.info(f"Normalized data saved.")
   print(f"Normalized data saved to '{cleaned_file}'.")
 
@@ -488,6 +525,9 @@ def main():
   print("Sending payload to LLM for synthesis. This may take a moment...")
   llm_data=fetch_llm_report(json_payload, api_key)
   logging.info(f"LLM analysis successfully parsed.")
+
+  json_output_file = output_folder / "risk_report.json"
+  narrative_report = output_folder / "risk_narrative_report.txt"
 
   save_to_json_file(json_output_file, llm_data)
   logging.info(f"JSON LLM data saved.")

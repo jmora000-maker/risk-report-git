@@ -1,4 +1,4 @@
-odules = ["python-3.11"]
+Modules = ["python-3.11"]
 
 # Force Streamlit to run on the standard web port 3000
 run = "streamlit run scripts/src/app.py --server.port 3000 --server.address 0.0.0.0"
