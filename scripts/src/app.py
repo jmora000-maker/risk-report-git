@@ -23,17 +23,19 @@ from generate_risk_report import (
 )
 
 # --- UTILITY TO CAPTURE STDOUT ---
+#This class redirects standard output to a Streamlit text component in real-time.
 class StreamlitStdoutRedirector(contextlib.AbstractContextManager):
-    """Redirects standard output streams to a text component in the browser in real-time."""
     def __init__(self, placeholder):
         self.placeholder = placeholder
         self.string_io = io.StringIO()
 
     def __enter__(self):
+        # Capture all print() statements and route them to our string buffer
         sys.stdout = self.string_io
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        # Restore the original stdout
         sys.stdout = sys.__stdout__
 
     def update_ui(self):
@@ -66,17 +68,17 @@ def run_automated_pipeline(log_placeholder, input_file):
     with contextlib.redirect_stdout(io.StringIO()) as buffer:
         try:
             print("Pipeline started.")
-            log_placeholder.code(buffer.getvalue())
+            log_placeholder.code(buffer.getvalue())  # Update UI with current buffer
 
             # Step 1: Unified dynamic spreadsheet ingestion (.csv, .xlsx, .xls, .txt)
             data_from_file = ingest_file(input_file_path)
             print(f"Loaded {len(data_from_file)} risks from register source file: '{input_file}'")
-            log_placeholder.code(buffer.getvalue())
+            log_placeholder.code(buffer.getvalue()) 
 
             # Step 2: Inherent and residual score logic preprocessing
             clean_data = normalize_risk_data(data_from_file)
             print("Spreadsheet normalization metrics computed.")
-            log_placeholder.code(buffer.getvalue())
+            log_placeholder.code(buffer.getvalue())    
 
             # Step 3: Intermediate backup serialization matching input extensions
             save_data(cleaned_file, clean_data, ext)
@@ -120,8 +122,8 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("Next-Gen Risk Report Generator")
-st.markdown("---")
+st.title("Automated Risk Analyst")
+st.markdown("---")                             # Horizontal divider
 
 # Split dashboard workspace view evenly into two layout control blocks
 col1, col2 = st.columns(2)
@@ -137,9 +139,9 @@ with col1:
     )
 
     # Core system action trigger interface button
-    start_pipeline = st.button("Generate Executive Risk Summary", use_container_width=True)
+    start_pipeline = st.button("Generate Risk Report", use_container_width=True, type="primary")
 
-    st.subheader("Live Operational Logs")
+    st.subheader("Live Operation Logs")
     # Interactive log tracing viewport block
     console_logs = st.empty()
     console_logs.code("System idling... Enter a valid input file and click the execution button to begin.")
@@ -175,7 +177,7 @@ if start_pipeline:
 
             # Native browser download button widget asset mapping final strings out of RAM memory
             st.download_button(
-                label="Download Narrative Report (.txt)",
+                label="Download Risk Narrative Report (.txt)",
                 data=final_narrative,
                 file_name="risk_narrative_report.txt",
                 mime="text/plain",
