@@ -46,11 +46,9 @@ def ingest_file(input_file_path):
   ext = Path(input_file_path).suffix.lower()
   if ext == ".csv":
       logging.info(f"Loading CSV file: {input_file_path}")
-      print(f"Loading CSV file: {input_file_path}")
       return load_from_csv(input_file_path)
   elif ext == ".txt":
       logging.info(f"Loading TXT file: {input_file_path}")
-      print(f"Loading TXT file: {input_file_path}")
       return load_from_csv(input_file_path)
   elif ext in [".xlsx", ".xls"]:
       return load_from_excel(input_file_path)
@@ -62,7 +60,6 @@ Read the first sheet by default; handles NaN values cleanly by converting them t
 def load_from_excel(input_file):
   df = pd.read_excel(input_file, dtype=str)
   logging.info (f"Excel file loaded with {len(df)} rows.")
-  print (f"Excel file loaded with {len(df)} rows.")
   df = df.fillna("")
   return df.to_dict(orient="records")
 
@@ -483,10 +480,10 @@ def main():
     input_file_path = os.path.join(target_dir, input_file)
 
     if os.path.isfile(input_file_path):
-          print(f"'{input_file}' found in {target_dir}.")
+          print(f"'{input_file}' found.")
           break  
     else:
-          print(f"Error: '{input_file}' does not exist in {target_dir}. Please try again.")
+          print(f"Error: '{input_file}' does not exist. Please try again.")
 
   print(f"Pipeline started.")
 
@@ -516,13 +513,14 @@ def main():
 
   save_data(cleaned_file, clean_data, ext)
   logging.info(f"Normalized data saved.")
-  print(f"Normalized data saved to '{cleaned_file}'.")
+  print(f"Normalized data saved to '{name}_cleaned{ext}'.")
 
   json_payload = get_json_data(clean_data)
   logging.info(f"Data converted to JSON for LLM payload.")
   print(f"Data converted to JSON for LLM payload.")
 
-  print("Sending payload to LLM for synthesis. This may take a moment...")
+  print("Sending payload to LLM for synthesis.")
+  print("This may take a few moments...")
   llm_data=fetch_llm_report(json_payload, api_key)
   logging.info(f"LLM analysis successfully parsed.")
 
@@ -531,12 +529,12 @@ def main():
 
   save_to_json_file(json_output_file, llm_data)
   logging.info(f"JSON LLM data saved.")
-  print(f"LLM JSON data saved to '{json_output_file}'.")
+  print(f"LLM JSON data saved to 'risk_report.json'.")
 
   narrative = generate_narrative(llm_data)
   save_narrative_to_file(narrative_report, narrative)
   logging.info(f"Narrative report saved.")
-  print(f"Narrative report saved to '{narrative_report}'.")
+  print(f"Narrative report saved to 'risk_narrative_report.txt'.")
   print(f"Pipeline completed.")
 
 # --- EXECUTE MAIN ---

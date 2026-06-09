@@ -50,7 +50,7 @@ def run_automated_pipeline(log_placeholder, input_file):
 
     # Pre-execution file evaluation safety gate
     if not os.path.isfile(input_file_path):
-        st.error(f"Error: Target file '{input_file}' not found in the 'inputs' directory.")
+        st.error(f"Error: Target file '{input_file}' not found.")
         return None
 
     # Deconstruct extension traits dynamically based on user context textbox selection
@@ -82,7 +82,7 @@ def run_automated_pipeline(log_placeholder, input_file):
 
             # Step 3: Intermediate backup serialization matching input extensions
             save_data(cleaned_file, clean_data, ext)
-            print(f"Normalized working snapshot stored to: '{cleaned_file.name}'")
+            print(f"Normalized working snapshot stored to: '{name}_cleaned{ext}'")
             log_placeholder.code(buffer.getvalue())
 
             # Step 4: JSON processing conversions
@@ -99,11 +99,11 @@ def run_automated_pipeline(log_placeholder, input_file):
 
             # Step 6: Final structural artifact export procedures
             save_to_json_file(json_output_file, llm_data)
-            print(f"System JSON schema metrics saved to: '{json_output_file.name}'")
+            print(f"System JSON schema metrics saved to: 'risk_report.json'")
 
             narrative = generate_narrative(llm_data)
             save_narrative_to_file(narrative_report, narrative)
-            print(f"Executive text summary report saved to: '{narrative_report.name}'")
+            print(f"Executive text summary report saved to: 'risk_narrative_report.txt'")
 
             print("Pipeline completed successfully.")
             log_placeholder.code(buffer.getvalue())
