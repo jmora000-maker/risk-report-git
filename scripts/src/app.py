@@ -23,24 +23,18 @@ from generate_risk_report import (
 )
 
 # --- UTILITY TO CAPTURE STDOUT ---
-#This class redirects standard output to a Streamlit text component in real-time.
-class StreamlitStdoutRedirector(contextlib.AbstractContextManager):
+# This class redirects standard output to a Streamlit text component in real-time.
+class StreamlitStdoutRedirector:
     def __init__(self, placeholder):
         self.placeholder = placeholder
-        self.string_io = io.StringIO()
+        self.output_str = ""
 
-    def __enter__(self):
-        # Capture all print() statements and route them to our string buffer
-        sys.stdout = self.string_io
-        return self
+    def write(self, text):
+        self.output_str += text
+        self.placeholder.code(self.output_str)
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        # Restore the original stdout
-        sys.stdout = sys.__stdout__
-
-    def update_ui(self):
-        # Refresh the text wrapper container with whatever has printed during execution
-        self.placeholder.code(self.string_io.getvalue())
+    def flush(self):
+        pass
 
 
 # --- CORE PIPELINE EXECUTION WRAPPER ---
@@ -64,112 +58,112 @@ def run_automated_pipeline(log_placeholder, input_file):
     narrative_report = output_folder / "risk_narrative_report.txt"
     api_key = os.environ.get("Risk_Report_Key")
 
-    # Capture print() statements and route them visually to our console readout component
-    with contextlib.redirect_stdout(io.StringIO()) as buffer:
-        try:
-            print("Pipeline started.")
-            log_placeholder.code(buffer.getvalue())  # Update UI with current buffer
+    try:
+        print("Pipeline started.")
 
-            # Step 1: Unified dynamic spreadsheet ingestion (.csv, .xlsx, .xls, .txt)
-            data_from_file = ingest_file(input_file_path)
-            print(f"Loaded {len(data_from_file)} risks from register source file: '{input_file}'")
-            log_placeholder.code(buffer.getvalue()) 
+        # Step 1: Unified dynamic spreadsheet ingestion (.csv, .xlsx, .xls, .txt)
+        data_from_file = ingest_file(input_file_path)
+        print(f"Loaded {len(data_from_file)} risks from register source file: '{input_file}'")
 
-            # Step 2: Inherent and residual score logic preprocessing
-            clean_data = normalize_risk_data(data_from_file)
-            print("Spreadsheet normalization metrics computed.")
-            log_placeholder.code(buffer.getvalue())    
+        # Step 2: Inherent and residual score logic preprocessing
+        clean_data = normalize_risk_data(data_from_file)
+        print("Spreadsheet normalization metrics computed.")
 
-            # Step 3: Intermediate backup serialization matching input extensions
-            save_data(cleaned_file, clean_data, ext)
-            print(f"Normalized working snapshot stored to: '{name}_cleaned{ext}'")
-            log_placeholder.code(buffer.getvalue())
+        # Step 3: Intermediate backup serialization matching input extensions
+        save_data(cleaned_file, clean_data, ext)
+        print(f"Normalized working snapshot stored to: '{name}_cleaned{ext}'")
 
-            # Step 4: JSON processing conversions
-            json_payload = get_json_data(clean_data)
-            print("Data structures packaged into a JSON text payload layout.")
-            log_placeholder.code(buffer.getvalue())
+        # Step 4: JSON processing conversions
+        json_payload = get_json_data(clean_data)
+        print("Data structures packaged into a JSON text payload layout.")
 
-            # Step 5: Secure OpenAI chat completion request transaction
-            print("Transmitting contextual payload parameters to OpenAI for strategic synthesis...")
-            log_placeholder.code(buffer.getvalue())
-            llm_data = fetch_llm_report(json_payload, api_key)
-            print("Response successfully decrypted and parsed by application server.")
-            log_placeholder.code(buffer.getvalue())
+        # Step 5: Secure OpenAI chat completion request transaction
+        print("Transmitting contextual payload parameters to OpenAI for strategic synthesis...")
+        print("Please wait while the LLM generates your risk report...")
+        llm_data = fetch_llm_report(json_payload, api_key)
+        print("Response successfully decrypted and parsed by application server.")
 
-            # Step 6: Final structural artifact export procedures
-            save_to_json_file(json_output_file, llm_data)
-            print(f"System JSON schema metrics saved to: 'risk_report.json'")
+        # Step 6: Final structural artifact export procedures
+        save_to_json_file(json_output_file, llm_data)
+        print(f"System JSON schema metrics saved to: 'risk_report.json'")
 
-            narrative = generate_narrative(llm_data)
-            save_narrative_to_file(narrative_report, narrative)
-            print(f"Executive text summary report saved to: 'risk_narrative_report.txt'")
+        narrative = generate_narrative(llm_data)
+        save_narrative_to_file(narrative_report, narrative)
+        print(f"Executive text summary report saved to: 'risk_narrative_report.txt'")
 
-            print("Pipeline completed successfully.")
-            log_placeholder.code(buffer.getvalue())
+        print("Pipeline completed successfully.")
 
-            return narrative
+        return narrative
 
-        except Exception as e:
-            st.error(f"Pipeline crashed with an unhandled traceback exception: {e}")
-            logging.error(f"Streamlit runtime pipeline execution failure: {e}", exc_info=True)
-            return None
+    except Exception as e:
+        st.error(f"Pipeline crashed with an unhandled traceback exception: {e}")
+        logging.error(f"Streamlit runtime pipeline execution failure: {e}", exc_info=True)
+        return None
 
 
 # --- STREAMLIT UI CONFIGURATION ---
 st.set_page_config(
-    page_title="Next-Gen Risk Analytics",
+    page_title="AI Risk Report Generator",
     layout="wide"
 )
 
-st.title("Automated Risk Analyst")
+st.title("Automated Risk Report Dashboard")
 st.markdown("---")                             # Horizontal divider
 
 # Split dashboard workspace view evenly into two layout control blocks
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("Control Center")
+    st.subheader("1. Control Center")
 
     # Reactive user textbox component mapping straight to inputs directory files
     target_filename = st.text_input(
         label="Source Filename", 
         value="test_risk.xlsx", 
-        help="Type the full name of the file located inside your 'inputs' folder (e.g., test_risk.xlsx, test_risk.csv. test_risk.txt)"
+        help="Type the full name of the file located inside your 'inputs' folder (e.g., test_risk.xlsx, test_risk.csv, test_risk.txt)"
     )
 
     # Core system action trigger interface button
     start_pipeline = st.button("Generate Risk Report", use_container_width=True, type="primary")
 
-    st.subheader("Live Operation Logs")
+    st.markdown("**Live Operational Logs:**")
     # Interactive log tracing viewport block
     console_logs = st.empty()
     console_logs.code("System idling... Enter a valid input file and click the execution button to begin.")
 
+# Persistent frame layout setup for Column 2 immediately on boot
+with col2:
+    st.subheader("2. Executive Synthesis Workspace")
+    report_placeholder = st.empty()
+
+    # Pre-execution placeholder info state setup
+    report_placeholder.info("The risk report will populate here upon synthesis.")
+
 # Active process handler evaluations
 if start_pipeline:
+    redirector = StreamlitStdoutRedirector(console_logs)
+
     with st.spinner("Processing risk parameters..."):
-        # Forward operational console and typed filename target downstream into execution stack
-        final_narrative = run_automated_pipeline(console_logs, target_filename)
+        # Wrap the stream interceptor strictly around the pipeline engine call 
+        with contextlib.redirect_stdout(redirector):
+            final_narrative = run_automated_pipeline(console_logs, target_filename)
 
     if final_narrative:
         with col2:
-            st.subheader("Generated Executive Narrative")
-
-            # Custom styled HTML markdown layout window containing scrollable report payload results
-            st.markdown(
+            # Overwrite the initial info alert box inside the locked workspace column element
+            report_placeholder.markdown(
                 f"""
                 <div style="
                     background-color: #1e293b; 
                     color: #f8fafc; 
-                    padding: 20px; \
-                    border-radius: 8px; \
-                    height: 550px; \
-                    overflow-y: scroll; \
-                    white-space: pre-wrap; \
-                    font-family: monospace;\
-                    border: 1px solid #334155;\
-                    line-height: 1.5;\
+                    padding: 20px; 
+                    border-radius: 8px; 
+                    height: 550px; 
+                    overflow-y: scroll; 
+                    white-space: pre-wrap; 
+                    font-family: monospace;
+                    border: 1px solid #334155;
+                    line-height: 1.5;
                 ">{final_narrative}</div>
                 """, 
                 unsafe_allow_html=True
