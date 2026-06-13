@@ -56,7 +56,7 @@ def run_automated_pipeline(log_placeholder, input_file):
     cleaned_file = input_folder / f"{name}_cleaned{ext}"
     json_output_file = output_folder / "risk_report.json"
     narrative_report = output_folder / "risk_narrative_report.txt"
-    api_key = os.environ.get("Risk_Report_Key")
+    api_key = os.environ.get("OPENAI_API_KEY")
 
     try:
         print("Pipeline started.")

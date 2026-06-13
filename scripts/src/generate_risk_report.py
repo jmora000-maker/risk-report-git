@@ -493,7 +493,7 @@ def main():
   ext = file_path_obj.suffix.lower()
 
   cleaned_file = output_folder / f"{name}_cleaned{ext}"
-  api_key = os.environ.get("Risk_Report_Key")
+  api_key = os.environ.get("OPENAI_API_KEY")
 
   # 2. Routed data loading
   try:
