@@ -16,7 +16,7 @@ log_folder = project_root / "logs"
 output_folder = project_root / "outputs"
 
 # --- GLOBAL CONSTANTS ---
-ALLOWED_CATEGORIES = {
+ALLOWED_CATEGORIES = (
     "Schedule",
     "Cost",
     "Technical",
@@ -31,13 +31,13 @@ ALLOWED_CATEGORIES = {
     "Data",
     "Operational",
     "Procurement",
-}
-
-today = date.today().strftime("%B %d, %Y")
+)
 
 ALLOWED_STATUS = {"Open", "Watching", "Response in Progress", "Escalated", "Closed"}
 
 ALLOWED_RESPONSE_STRATEGIES = {"Avoid", "Mitigate", "Transfer", "Accept", "Escalate"}
+
+today = date.today().strftime("%B %d, %Y")
 
 # --- DATA LOADING ---
 
@@ -45,10 +45,8 @@ ALLOWED_RESPONSE_STRATEGIES = {"Avoid", "Mitigate", "Transfer", "Accept", "Escal
 def ingest_file(input_file_path):
   ext = Path(input_file_path).suffix.lower()
   if ext == ".csv":
-      logging.info(f"Loading CSV file: {input_file_path}")
       return load_from_csv(input_file_path)
   elif ext == ".txt":
-      logging.info(f"Loading TXT file: {input_file_path}")
       return load_from_csv(input_file_path)
   elif ext in [".xlsx", ".xls"]:
       return load_from_excel(input_file_path)
@@ -59,18 +57,13 @@ def ingest_file(input_file_path):
 Read the first sheet by default; handles NaN values cleanly by converting them to empty strings"""
 def load_from_excel(input_file):
   df = pd.read_excel(input_file, dtype=str)
-  logging.info (f"Excel file loaded with {len(df)} rows.")
   df = df.fillna("")
   return df.to_dict(orient="records")
 
 """"Reads a CSV file and converts it to a list of dictionaries using the csv module."""
 def load_from_csv(input_file):
-  with open (input_file, newline="", encoding="utf-8") as fobj:    # Open the file
-    reader = csv.DictReader(fobj) # An iterable object that returns dictionaries
-    dict_data = []                # initialize an empty list
-    for row in reader:            # convert each row to a dictionary
-      dict_data.append(row)       # add the dictionary to the list
-  return dict_data
+    with open(input_file, newline="", encoding="utf-8") as f:
+        return [row for row in csv.DictReader(f)]
 
 # --- DATA NORMALIZATION ---
 def normalize_risk_data(dict_data):
@@ -121,8 +114,8 @@ def normalize_risk_data(dict_data):
 """Saves data to a file in the original format (CSV or Excel) using pandas."""
 def save_data(output_file, dict_data, original_ext):
   if original_ext in [".csv", ".txt"]:
-      with open(output_file, "w", newline="", encoding="utf-8") as fobj:
-          writer = csv.DictWriter(fobj, fieldnames=dict_data[0].keys())
+      with open(output_file, "w", newline="", encoding="utf-8") as f:
+          writer = csv.DictWriter(f, fieldnames=dict_data[0].keys())
           writer.writeheader()
           writer.writerows(dict_data)
   elif original_ext in [".xlsx", ".xls"]:
@@ -301,9 +294,9 @@ Required JSON schema:
 
 # --- JSON SAVING ---
 def save_to_json_file(output_file, clean_ai_dict):
-  with open(output_file, "w", encoding="utf-8") as fobj:                           # open the file for writing
-    json_string = json.dumps(clean_ai_dict, indent=4)                             # convert the dictionary to a JSON string
-    fobj.write(json_string)                                                       # write the JSON string to the file
+  with open(output_file, "w", encoding="utf-8") as f:                           # open the file for writing
+    json_string = json.dumps(clean_ai_dict, indent=4)                            # convert the dictionary to a JSON string
+    f.write(json_string)                                                         # write the JSON string to the file
   return None
 
 # --- NARRATIVE GENERATION ---
@@ -320,7 +313,7 @@ def generate_narrative(clean_ai_dict):
 
       # Title
     project_name = report_metadata.get("project_name", "Unknown Project")
-    generated_on = report_metadata.get("report_date", "Unknown Date")
+    report_metadata.get("report_date", "Unknown Date")
     total_risks = report_metadata.get("total_risks", "Unknown")
     active_risks = report_metadata.get("active_risks", "Unknown")
 
@@ -331,7 +324,7 @@ def generate_narrative(clean_ai_dict):
     lines.append(f"This report summarizes {total_risks} identified risks, of which {active_risks} are currently active.")
     lines.append("")
 
-      # Executive Summary
+    # Executive Summary
     lines.append("EXECUTIVE SUMMARY")
     lines.append(executive_summary.get("overall_summary", "No executive summary provided."))
     lines.append("")
@@ -466,16 +459,17 @@ def generate_narrative(clean_ai_dict):
 
 # --- NARRATIVE SAVING ---
 def save_narrative_to_file(output_file, narrative):
-  with open(output_file, "w", encoding="utf-8") as fobj:
-    fobj.write(narrative)
+  with open(output_file, "w", encoding="utf-8") as f:
+    f.write(narrative)
   return None
 
 # --- MAIN EXECUTION ---
 def main():
 
-  target_dir = input_folder 
+  target_dir = input_folder
+
+  # Get input files
   while True:
-    # Accept file names dynamically
     input_file = input("Enter the source filename (e.g., 'test_risk.xlsx' 'test_risk.csv' or 'test_risk.txt' ): ")
     input_file_path = os.path.join(target_dir, input_file)
 
@@ -485,6 +479,8 @@ def main():
     else:
           print(f"Error: '{input_file}' does not exist. Please try again.")
 
+
+  logging.info(f"Pipeline started.")
   print(f"Pipeline started.")
 
   # Track extension details for outputs
@@ -495,7 +491,7 @@ def main():
   cleaned_file = output_folder / f"{name}_cleaned{ext}"
   api_key = os.environ.get("OPENAI_API_KEY")
 
-  # 2. Routed data loading
+  # Routed data ingestion
   try:
       data_from_file = ingest_file(input_file_path) # ingest_file returns a list of dictionaries whether from CSV or Excel
   except Exception as e:
@@ -506,18 +502,22 @@ def main():
   logging.info(f"{len(data_from_file)} risks loaded from '{input_file}'.")
   print(f"{len(data_from_file)} risks loaded from '{input_file}'.")
 
+  # Normalize ingested data
   clean_data = normalize_risk_data(data_from_file)
   logging.info(f"Data normalized.")
   print(f"Data normalized.")
 
+  # Save cleaned data to a file
   save_data(cleaned_file, clean_data, ext)
   logging.info(f"Normalized data saved.")
   print(f"Normalized data saved to '{name}_cleaned{ext}'.")
 
+  # Convert ingested data to JSON
   json_payload = get_json_data(clean_data)
   logging.info(f"Data converted to JSON for LLM payload.")
   print(f"Data converted to JSON for LLM payload.")
 
+  #Create payload, send to LLM, and return dictionary data
   print("Sending payload to LLM for synthesis.")
   print("This may take a few moments...")
   llm_data=fetch_llm_report(json_payload, api_key)
@@ -526,10 +526,12 @@ def main():
   json_output_file = output_folder / "risk_report.json"
   narrative_report = output_folder / "risk_narrative_report.txt"
 
+  #Convert Python dictionary back to JSON and write to a file
   save_to_json_file(json_output_file, llm_data)
   logging.info(f"JSON LLM data saved.")
   print(f"LLM JSON data saved to 'risk_report.json'.")
 
+  #Generate Narrative Report from Python Dictionary
   narrative = generate_narrative(llm_data)
   save_narrative_to_file(narrative_report, narrative)
   logging.info(f"Narrative report saved.")

@@ -62,3 +62,19 @@
 2026-06-13 15:36:47,220 - INFO - LLM analysis successfully parsed.
 2026-06-13 15:36:47,221 - INFO - JSON LLM data saved.
 2026-06-13 15:36:47,222 - INFO - Narrative report saved.
+2026-06-13 18:23:20,085 - INFO - Pipeline started.
+2026-06-13 18:23:20,087 - INFO - 30 risks loaded from 'test_risk.txt'.
+2026-06-13 18:23:20,087 - INFO - Data normalized.
+2026-06-13 18:23:20,088 - INFO - Normalized data saved.
+2026-06-13 18:23:20,088 - INFO - Data converted to JSON for LLM payload.
+2026-06-13 18:23:50,510 - INFO - LLM analysis successfully parsed.
+2026-06-13 18:23:50,511 - INFO - JSON LLM data saved.
+2026-06-13 18:23:50,511 - INFO - Narrative report saved.
+2026-06-13 18:26:59,803 - INFO - Pipeline started.
+2026-06-13 18:26:59,803 - INFO - 30 risks loaded from 'test_risk.txt'.
+2026-06-13 18:26:59,804 - INFO - Data normalized.
+2026-06-13 18:26:59,804 - INFO - Normalized data saved.
+2026-06-13 18:26:59,804 - INFO - Data converted to JSON for LLM payload.
+2026-06-13 18:27:47,366 - INFO - LLM analysis successfully parsed.
+2026-06-13 18:27:47,367 - INFO - JSON LLM data saved.
+2026-06-13 18:27:47,368 - INFO - Narrative report saved.

@@ -5,11 +5,11 @@
         "input_file": "",
         "total_risks": 30,
         "open_risks": 18,
-        "high_risks": 6,
+        "high_risks": 8,
         "active_risks": 18
     },
     "executive_summary": {
-        "overall_summary": "The project is facing significant risk exposure primarily in schedule and security categories, with a total of 30 identified risks, of which 18 are currently open. The overall risk exposure appears to be stable, but several high-priority risks require immediate attention.",
+        "overall_summary": "The project faces significant risks primarily related to schedule and security, with a total of 30 identified risks, of which 18 are currently open. The concentration of risks indicates a critical need for management attention to prevent potential delays and security breaches.",
         "key_drivers": [
             "Vendor dependency",
             "Schedule compression",
@@ -17,8 +17,8 @@
         ],
         "trend_statement": "Trend cannot be determined from the provided snapshot.",
         "management_attention": [
-            "Address vendor API delays to avoid schedule slippage.",
-            "Mitigate security vulnerabilities to protect project integrity."
+            "Address vendor delays to prevent milestone slippage.",
+            "Mitigate security vulnerabilities to avoid compliance issues."
         ]
     },
     "portfolio_summary": {
@@ -52,15 +52,8 @@
                 "highest_score": 9
             },
             {
-                "category": "Data",
-                "count": 4,
-                "average_score": 9,
-                "max_score": 9,
-                "highest_score": 9
-            },
-            {
                 "category": "Technical",
-                "count": 5,
+                "count": 4,
                 "average_score": 12,
                 "max_score": 12,
                 "highest_score": 12
@@ -73,18 +66,25 @@
                 "highest_score": 10
             },
             {
-                "category": "Scope",
+                "category": "Data",
                 "count": 3,
                 "average_score": 9,
                 "max_score": 9,
                 "highest_score": 9
             },
             {
-                "category": "External",
+                "category": "Stakeholder",
                 "count": 3,
                 "average_score": 8,
                 "max_score": 8,
                 "highest_score": 8
+            },
+            {
+                "category": "Procurement",
+                "count": 3,
+                "average_score": 6,
+                "max_score": 6,
+                "highest_score": 6
             },
             {
                 "category": "Quality",
@@ -105,7 +105,7 @@
             },
             {
                 "status": "Response in Progress",
-                "count": 4
+                "count": 3
             },
             {
                 "status": "Escalated",
@@ -113,7 +113,7 @@
             },
             {
                 "status": "Closed",
-                "count": 2
+                "count": 3
             }
         ]
     },
@@ -126,7 +126,7 @@
             "status": "Open",
             "inherent_score": 20,
             "residual_score": 8,
-            "summary": "A delay in vendor API delivery could lead to significant schedule slippage, impacting project timelines."
+            "summary": "A delay in the vendor's API delivery could lead to significant schedule slippage, impacting project timelines."
         },
         {
             "risk_id": "R-007",
@@ -136,7 +136,7 @@
             "status": "Open",
             "inherent_score": 20,
             "residual_score": 3,
-            "summary": "An outdated dependency poses a critical security risk that could compromise project integrity and data protection."
+            "summary": "An outdated dependency poses a critical security risk that could lead to compliance issues and data breaches."
         },
         {
             "risk_id": "R-019",
@@ -146,7 +146,7 @@
             "status": "Escalated",
             "inherent_score": 16,
             "residual_score": 4,
-            "summary": "A tight migration timeline may lead to schedule slippage, affecting project deliverables."
+            "summary": "A tight migration timeline could result in schedule slippage, jeopardizing project delivery."
         },
         {
             "risk_id": "R-028",
@@ -156,7 +156,7 @@
             "status": "Escalated",
             "inherent_score": 15,
             "residual_score": 3,
-            "summary": "Unauthorized access risks could lead to severe security breaches, impacting compliance and trust."
+            "summary": "Unauthorized access due to privilege creep could lead to severe security breaches and audit failures."
         },
         {
             "risk_id": "R-004",
@@ -166,7 +166,7 @@
             "status": "Response in Progress",
             "inherent_score": 12,
             "residual_score": 4,
-            "summary": "Uncontrolled feature additions may lead to project delays and budget overruns."
+            "summary": "Uncontrolled feature additions could lead to project delays and budget overruns."
         },
         {
             "risk_id": "R-006",
@@ -176,7 +176,27 @@
             "status": "Watching",
             "inherent_score": 12,
             "residual_score": 4,
-            "summary": "Inflation affecting hardware costs could lead to budget overruns, impacting project viability."
+            "summary": "Inflation impacting hardware costs could lead to budget overruns, affecting overall project funding."
+        },
+        {
+            "risk_id": "R-008",
+            "title": "Data quality issues",
+            "category": "Data",
+            "owner": "H. Blue",
+            "status": "Open",
+            "inherent_score": 12,
+            "residual_score": 4,
+            "summary": "Incomplete legacy records could lead to data migration failures, impacting project quality."
+        },
+        {
+            "risk_id": "R-017",
+            "title": "Hardware shortage",
+            "category": "Procurement",
+            "owner": "Q. Teal",
+            "status": "Open",
+            "inherent_score": 12,
+            "residual_score": 4,
+            "summary": "Supply chain delays for hardware could lead to procurement issues, affecting project timelines."
         }
     ],
     "detailed_risk_analysis": [
@@ -188,13 +208,13 @@
             "status": "Open",
             "inherent_score": 20,
             "residual_score": 8,
-            "why_it_matters": "Delays in API delivery can halt project progress and lead to missed deadlines.",
-            "summary": "This risk is critical due to vendor non-responsiveness and its potential impact on the project schedule.",
+            "why_it_matters": "Delays in vendor API delivery can directly impact project milestones.",
+            "summary": "The risk is currently open and requires immediate attention to ensure timely delivery.",
             "trigger": "Missed milestone",
             "current_response": "Weekly checkpoints",
             "contingency_plan": "Use stub interface",
-            "next_action": "Escalate to vendor management for resolution.",
-            "adequacy": "Adequate but requires higher-level intervention."
+            "next_action": "Engage vendor for updates and escalate if necessary.",
+            "adequacy": "Current response is adequate but needs reinforcement."
         },
         {
             "risk_id": "R-007",
@@ -204,13 +224,13 @@
             "status": "Open",
             "inherent_score": 20,
             "residual_score": 3,
-            "why_it_matters": "This vulnerability could expose sensitive data, risking compliance and user trust.",
-            "summary": "Immediate action is required to patch the software and mitigate this risk.",
+            "why_it_matters": "A security breach could lead to significant compliance and reputational damage.",
+            "summary": "Immediate action is required to patch the software and mitigate vulnerabilities.",
             "trigger": "Automated scan",
             "current_response": "Patch software",
             "contingency_plan": "Rollback to v1",
-            "next_action": "Ensure patches are applied and verify system integrity.",
-            "adequacy": "Adequate but needs prompt execution."
+            "next_action": "Implement patches and conduct a follow-up scan.",
+            "adequacy": "Response is adequate but requires prompt execution."
         },
         {
             "risk_id": "R-019",
@@ -220,13 +240,13 @@
             "status": "Escalated",
             "inherent_score": 16,
             "residual_score": 4,
-            "why_it_matters": "A tight timeline can lead to rushed work, increasing the likelihood of errors.",
-            "summary": "This risk is exacerbated by high pressure and requires additional resources to mitigate.",
+            "why_it_matters": "A tight timeline could lead to rushed decisions and project delays.",
+            "summary": "The risk is escalated due to high pressure and requires additional resources.",
             "trigger": "Schedule slippage",
             "current_response": "Add resources",
             "contingency_plan": "Phased rollout",
-            "next_action": "Assess resource allocation and adjust timelines accordingly.",
-            "adequacy": "Needs improvement in resource management."
+            "next_action": "Reassess timeline and allocate additional resources.",
+            "adequacy": "Response is adequate but needs immediate action."
         },
         {
             "risk_id": "R-028",
@@ -236,60 +256,28 @@
             "status": "Escalated",
             "inherent_score": 15,
             "residual_score": 3,
-            "why_it_matters": "Unauthorized access can lead to significant data breaches and compliance issues.",
-            "summary": "Immediate implementation of IAM is necessary to secure access controls.",
+            "why_it_matters": "Unauthorized access can lead to severe security breaches.",
+            "summary": "The risk is high and requires immediate implementation of access management solutions.",
             "trigger": "Audit fail",
             "current_response": "Implement IAM",
             "contingency_plan": "Manual audit",
-            "next_action": "Conduct a thorough audit of access rights.",
-            "adequacy": "Adequate but requires swift action."
-        },
-        {
-            "risk_id": "R-004",
-            "title": "Scope creep",
-            "category": "Scope",
-            "owner": "D. Brown",
-            "status": "Response in Progress",
-            "inherent_score": 12,
-            "residual_score": 4,
-            "why_it_matters": "Scope creep can lead to project delays and increased costs, affecting overall project success.",
-            "summary": "Strict change request processes are in place, but ongoing monitoring is essential.",
-            "trigger": "Change request",
-            "current_response": "Strict CR process",
-            "contingency_plan": "Deny features",
-            "next_action": "Review all change requests for necessity.",
-            "adequacy": "Adequate but needs continuous vigilance."
-        },
-        {
-            "risk_id": "R-006",
-            "title": "Budget overrun",
-            "category": "Cost",
-            "owner": "F. Black",
-            "status": "Watching",
-            "inherent_score": 12,
-            "residual_score": 4,
-            "why_it_matters": "Budget overruns can jeopardize project funding and lead to scope reductions.",
-            "summary": "Monitoring market rates is crucial to prevent financial strain.",
-            "trigger": "Vendor quote",
-            "current_response": "Re-budget",
-            "contingency_plan": "Reduce scope",
-            "next_action": "Prepare a revised budget proposal.",
-            "adequacy": "Adequate but needs proactive management."
+            "next_action": "Conduct a full audit and implement IAM solutions.",
+            "adequacy": "Response is adequate but requires urgency."
         }
     ],
     "conclusions": {
         "priority_actions": [
-            "Escalate vendor API delays to senior management.",
-            "Implement security patches immediately."
+            "Engage vendors to resolve API delays.",
+            "Patch security vulnerabilities immediately."
         ],
         "escalations": [
-            "Vendor management needs to address API delays.",
-            "Security vulnerabilities require urgent attention from IT leadership."
+            "Escalate vendor issues to senior management.",
+            "Request additional resources for migration."
         ],
         "watch_items": [
-            "Monitor budget overrun risks closely.",
-            "Keep an eye on scope creep developments."
+            "Monitor budget overruns closely.",
+            "Track data quality issues during migration."
         ],
-        "summary": "The project faces significant risks that require immediate and ongoing management to ensure successful delivery."
+        "summary": "The project is facing critical risks that require immediate management attention to prevent delays and security breaches."
     }
 }
