@@ -507,7 +507,6 @@ def main():
   print(f"{len(data_from_file)} risks loaded from '{input_file}'.")
 
   clean_data = normalize_risk_data(data_from_file)
-  print
   logging.info(f"Data normalized.")
   print(f"Data normalized.")
 
