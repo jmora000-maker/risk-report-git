@@ -16,8 +16,8 @@ COPY requirements.txt .
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy everything else from your 'main' directory (including scripts/ folder )
+# Copy everything else from your 'main' directory (including scripts/ folder)
 COPY . .
 
 # Run Streamlit by pointing to the exact nested path inside the container
-CMD ["streamlit", "run", "scripts/src/app.py", "--server.port=3000", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "scripts/src/app.py", "--server.port=8080", "--server.address=0.0.0.0"]
