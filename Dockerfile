@@ -19,7 +19,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy everything else from your 'main' directory (including scripts/ folder)
-COPY . /app
+COPY . .
 
 # Force Streamlit to listen to port 8501 and bind to all network interfaces
 ENTRYPOINT ["streamlit", "run", "scripts/src/app.py", "--server.port=8080", "--server.address=0.0.0.0"]
