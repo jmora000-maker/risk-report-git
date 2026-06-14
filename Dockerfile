@@ -19,11 +19,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy everything else from your 'main' directory (including scripts/ folder)
 COPY . .
 
-# Inform Docker that the container listens on port 8501 at runtime
-EXPOSE 8501
-
-# Configure a health check using Streamlit's built-in endpoint
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
-
 # Run Streamlit by pointing to the exact nested path inside the container
-CMD ["streamlit", "run", "scripts/src/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "scripts/src/app.py", "--server.port=${PORT:-8080}, "--server.address=0.0.0.0"]
