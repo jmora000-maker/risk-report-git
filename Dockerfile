@@ -5,7 +5,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Step 3: Copy our project files into the cloud container
-COPY . /app
+COPY scripts/src /app
 
 # Step 4: Install the required libraries
 RUN pip install --no-cache-dir -r requirements.txt
@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8080
 
 # Step 6: Tell Streamlit to run on port 8080 and accept outside connections
-ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8080", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "scripts/src/app.py", "--server.port=8080", "--server.address=0.0.0.0"]
