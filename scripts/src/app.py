@@ -505,26 +505,28 @@ def run_automated_pipeline(log_placeholder, input_file):
         print("PIPELINE STARTED.")
 
         # Step 1: Unified dynamic spreadsheet ingestion (.csv, .xlsx, .xls, .txt)
+        print(f"STEP #1: Loading risks from source file.")
         data_from_file = ingest_file(input_file_path)
-        print(f"STEP #1: Loaded {len(data_from_file)} risks from register source file: '{input_file}'")
 
         # Step 2: Inherent and residual score logic preprocessing
+        print("STEP #2: Normalizing risk data.")
         clean_data = normalize_risk_data(data_from_file)
-        print("STEP #2: Normalization completed.")
+
 
         # Step 3: JSON processing conversions
+        print("STEP #3: Packaging data into JSON.")
         json_payload = get_json_data(clean_data)
-        print("STEP #3: Data packaged into JSON.")
+
 
         # Step 4: Secure OpenAI API completion request transaction
         print("STEP #4: Transmitting payload to OpenAI...")
-        print("Please wait for a few moments ...")
+        print(" -> Please wait for a few moments ...")
         llm_data = fetch_llm_report(json_payload, api_key)
 
         #Step 5: Create Narrative Report
+        print(f"STEP #5: Generating Risk Report.")
         narrative = generate_narrative(llm_data)
         save_narrative_to_file(narrative_report, narrative)
-        print(f"STEP #5: Risk Report completed.")
 
         print("PIPELINE COMPLETED.")
 
@@ -542,14 +544,14 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("Automated Risk Report Dashboard")
+st.title("Risk Report Dashboard")
 st.markdown("---")                             # Horizontal divider
 
 # Split dashboard workspace view evenly into two layout control blocks
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("Control Center")
+    st.subheader("System Configuration")
 
     # Reactive user textbox component mapping straight to inputs directory files
     target_filename = st.text_input(
@@ -568,7 +570,7 @@ with col1:
 
 # Persistent frame layout setup for Column 2 immediately on boot
 with col2:
-    st.subheader("Executive Synthesis Workspace")
+    st.subheader("Report Workspace")
     report_placeholder = st.empty()
 
     # Pre-execution placeholder info state setup
@@ -606,7 +608,7 @@ if start_pipeline:
 
             # Native browser download button widget asset mapping final strings out of RAM memory
             st.download_button(
-                label="Download Risk Narrative Report (.txt)",
+                label="Download Risk Report (.txt)",
                 data=final_narrative,
                 file_name="risk_narrative_report.txt",
                 mime="text/plain",
