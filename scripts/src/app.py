@@ -545,7 +545,7 @@ st.set_page_config(
 )
 
 st.title("Risk Report Dashboard")
-st.caption("Predictive semantic auditing to expose undocumented delivery threats hidden within unstructured project artifacts.")
+st.caption("Automated narrative synthesis to transform dense spreadsheet registers into high-impact, executive-ready risk intelligence..")
 st.markdown("---")                             # Horizontal divider
 
 # Split dashboard workspace view evenly into two layout control blocks
