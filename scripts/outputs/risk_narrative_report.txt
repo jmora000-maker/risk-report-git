@@ -1,83 +1,80 @@
 RISK REPORT
 Project: General Report
-Report Date: June 16, 2026
+Report Date: June 22, 2026
 
 This report summarizes 30 identified risks, of which 15 are currently active.
 
 EXECUTIVE SUMMARY
-The project faces significant risks primarily in schedule and security categories, with a total of 30 identified risks. The majority of risks are currently open, indicating a need for immediate attention and management focus.
+The project faces significant risk exposure primarily in schedule and security categories, with a total of 30 identified risks, of which 15 are currently open. The concentration of high risks indicates a pressing need for management focus.
 
 Overall trend: Trend cannot be determined from the provided snapshot.
 
-The principal risk drivers across the portfolio are Vendor dependency, Schedule compression, and Security vulnerabilities.
+The principal risk drivers across the portfolio are Vendor dependency, Security vulnerabilities, and Schedule compression.
 
 Management attention is most needed in the following areas:
-- Address vendor API delays to prevent milestone slippage.
-- Mitigate security vulnerabilities to avoid compliance issues.
+- Address vendor delays to prevent schedule slippage.
+- Mitigate security vulnerabilities to avoid potential breaches.
 
 PORTFOLIO OVERVIEW
-- Schedule risks represent 7 items in the register, with an average score of 14.29 and a highest score of 20.
-- Cost risks represent 5 items in the register, with an average score of 9.6 and a highest score of 12.
-- Resource risks represent 5 items in the register, with an average score of 8.4 and a highest score of 9.
-- Technical risks represent 5 items in the register, with an average score of 10.4 and a highest score of 12.
-- Security risks represent 3 items in the register, with an average score of 18.33 and a highest score of 20.
-- Scope risks represent 3 items in the register, with an average score of 9 and a highest score of 12.
-- Data risks represent 3 items in the register, with an average score of 8 and a highest score of 9.
-- Compliance risks represent 3 items in the register, with an average score of 9.33 and a highest score of 10.
-- External risks represent 3 items in the register, with an average score of 7.33 and a highest score of 8.
+- Schedule risks represent 6 items in the register, with an average score of 15 and a highest score of 20.
+- Resource risks represent 5 items in the register, with an average score of 9 and a highest score of 9.
+- Cost risks represent 4 items in the register, with an average score of 9 and a highest score of 12.
 - Procurement risks represent 3 items in the register, with an average score of 6 and a highest score of 6.
+- Compliance risks represent 3 items in the register, with an average score of 8 and a highest score of 10.
+- Security risks represent 2 items in the register, with an average score of 20 and a highest score of 20.
 
 TOP RISK THEMES
-- The main themes emerging from the portfolio are concentrated in Schedule, Cost, and Resource.
+- The main themes emerging from the portfolio are concentrated in Schedule, Resource, and Cost.
 
 TOP RISKS REQUIRING IMMEDIATE ATTENTION
 R-001 - Vendor API delay: This risk is currently Open and owned by A. Smith.
 - Its inherent score is 20, and its residual score is 8.
-- Delays in vendor API delivery can directly impact project milestones and timelines. Current response: Weekly checkpoints. 
+- Delays from the vendor can push back critical project milestones. Current response: Weekly checkpoints. 
 - Assessment of response adequacy: Response adequacy not assessed..
-- Next required action: Escalate to vendor for resolution..
+- Next required action: Escalate to vendor management for urgent resolution..
 
 R-007 - Security vulnerability: This risk is currently Open and owned by G. Gray.
 - Its inherent score is 20, and its residual score is 3.
-- This vulnerability could lead to significant security breaches and compliance issues. Current response: Patch software. 
+- This vulnerability poses a risk to data integrity and compliance. Current response: Patch software. 
 - Assessment of response adequacy: Response adequacy not assessed..
-- Next required action: Implement patches immediately..
+- Next required action: Implement patches within the next sprint..
 
 R-019 - Migration timeline: This risk is currently Escalated and owned by S. Lime.
 - Its inherent score is 16, and its residual score is 4.
-- A tight timeline could jeopardize the entire migration process. Current response: Add resources. 
+- A tight timeline can lead to rushed work and errors. Current response: Add resources. 
 - Assessment of response adequacy: Response adequacy not assessed..
-- Next required action: Assess resource allocation and adjust timelines..
+- Next required action: Assess resource allocation and adjust as necessary..
 
 R-028 - Access management: This risk is currently Escalated and owned by B. Peach.
 - Its inherent score is 15, and its residual score is 3.
-- Unauthorized access could lead to major security incidents. Current response: Implement IAM. 
+- Unauthorized access can lead to severe security breaches. Current response: Implement IAM. 
 - Assessment of response adequacy: Response adequacy not assessed..
-- Next required action: Prioritize IAM implementation..
+- Next required action: Conduct a thorough audit of current access levels..
 
 R-004 - Scope creep: This risk is currently Response in Progress and owned by D. Brown.
 - Its inherent score is 12, and its residual score is 4.
-- Uncontrolled features can lead to budget overruns and missed deadlines. Current response: Strict CR process. 
+- Uncontrolled scope can lead to budget and timeline issues. Current response: Strict CR process. 
 - Assessment of response adequacy: Response adequacy not assessed..
-- Next required action: Monitor scope closely and enforce CR processes..
+- Next required action: Reinforce the change request process with stakeholders..
 
 R-006 - Budget overrun: This risk is currently Watching and owned by F. Black.
 - Its inherent score is 12, and its residual score is 4.
-- Inflation could significantly impact overall project costs. Current response: Re-budget. 
+- Inflation can significantly impact project costs. Current response: Re-budget. 
 - Assessment of response adequacy: Response adequacy not assessed..
-- Next required action: Review budget regularly and adjust as necessary..
+- Next required action: Review budget forecasts regularly..
 
 IMMEDIATE ACTIONS
 - Engage with vendors to resolve API delays.
 - Patch security vulnerabilities immediately.
+- Monitor migration timelines closely.
 
 ESCALATIONS
-- Escalate vendor issues regarding API delays.
-- Prioritize security patching efforts.
+- Escalate vendor issues to senior management.
+- Address security vulnerabilities as a top priority.
 
 WATCH ITEMS
-- Monitor budget impacts due to inflation.
-- Continue to watch for scope creep.
+- Continue monitoring budget overruns.
+- Watch for scope creep and enforce change request processes.
 
 CONCLUSION
-The project requires immediate attention to high-priority risks, particularly in schedule and security areas, to ensure successful delivery.
+The project requires immediate attention to high-priority risks, particularly in vendor management and security, to ensure successful delivery.
